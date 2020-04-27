@@ -1,12 +1,10 @@
 package com.dudulina.command;
 
-import java.util.HashMap;
-
 public class CommandSubscriberByMap implements CommandSubscriber {
 
-    private final HashMap<String, String[]> map;
+    private final CommandHandlersMap map;
 
-    public CommandSubscriberByMap(HashMap<String, String[]> map)
+    public CommandSubscriberByMap(CommandHandlersMap map)
     {
         this.map = map;
     }
@@ -14,7 +12,7 @@ public class CommandSubscriberByMap implements CommandSubscriber {
     @Override
     public CommandHandlerDescriptor getAggregateForCommand(Class<?> commandClass) throws CommandHandlerNotFound
     {
-        String[] entry = map.get(commandClass.getCanonicalName());
+        String[] entry = map.getMap().get(commandClass.getCanonicalName());
         if (entry == null) {
             throw new CommandHandlerNotFound(commandClass.getCanonicalName());
         }
