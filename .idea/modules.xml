@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/cqrs-java.iml" filepath="$PROJECT_DIR$/cqrs-java.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cqrs-java-annotations.iml" filepath="$PROJECT_DIR$/cqrs-java-annotations.iml" />
     </modules>
   </component>
 </project>

@@ -4,17 +4,19 @@ import com.dudulina.aggregates.AggregateDescriptor;
 import com.dudulina.event_store.AggregateEventStream;
 import com.dudulina.event_store.SeekableEventStream;
 import com.dudulina.events.EventWithMetaData;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 public interface EventStore {
 
-        public AggregateEventStream loadEventsForAggregate(AggregateDescriptor $aggregateDescriptor);
+    AggregateEventStream loadEventsForAggregate(AggregateDescriptor aggregateDescriptor);
 
-        public void appendEventsForAggregate(AggregateDescriptor $aggregateDescriptor, List<EventWithMetaData> $eventsWithMetaData, AggregateEventStream $expectedEventStream);
+    void appendEventsForAggregate(AggregateDescriptor aggregateDescriptor, List<EventWithMetaData> eventsWithMetaData, int expectedVersion)
+            throws ConcurrentModificationException;
 
-        public SeekableEventStream loadEventsByClassNames(List<String> eventClasses);
+    SeekableEventStream loadEventsByClassNames(List<String> eventClasses);
 
-        public int getAggregateVersion(AggregateDescriptor aggregateDescriptor);
+    int getAggregateVersion(AggregateDescriptor aggregateDescriptor);
 
-        public EventWithMetaData findEventById(String eventId);
+    EventWithMetaData findEventById(String eventId);
 }

@@ -1,18 +1,17 @@
 package com.dudulina.code_generation.processors;
 
-import com.dudulina.base.Aggregate;
-import com.dudulina.base.Command;
-import com.dudulina.command.CommandMetaData;
-import com.google.auto.service.AutoService;
+import com.dudulina.base.Event;
+import com.dudulina.events.MetaData;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
-import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -28,12 +27,12 @@ import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 
-@SupportedAnnotationTypes("com.dudulina.code_generation.annotations.CommandHandler")
+@SupportedAnnotationTypes("com.dudulina.code_generation.annotations.EventHandler")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 //@AutoService(Processor.class)
-public class CommandHandlersProcessor extends AbstractProcessor {
+public class EventHandlersProcessor extends AbstractProcessor {
 
-    public static final String builderClassName = "CommandHandlersMapImpl";
+    public static final String builderClassName = "EventHandlersMapImpl";
     public static final String packageName = "com.dudulina.code_generation";
 
     private static AnnotationMirror getAnnotationMirror(Element element, TypeElement annotation) {
@@ -49,7 +48,7 @@ public class CommandHandlersProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (TypeElement annotation : annotations) {
             try {
-                writeCode(getCommandHandlers(roundEnv.getElementsAnnotatedWith(annotation), annotation));
+                writeCode(getEventHandlers(roundEnv.getElementsAnnotatedWith(annotation), annotation));
             } catch (Exception e) {
                 return false;
             }
@@ -58,28 +57,28 @@ public class CommandHandlersProcessor extends AbstractProcessor {
         return false;
     }
 
-    private HashMap<String, CommandHandler> getCommandHandlers(Set<? extends Element> annotatedElements, TypeElement annotation) throws Exception {
-        HashMap<String, CommandHandler> handlers = new HashMap<>();
+    private HashMap<String, List<EventHandler>> getEventHandlers(Set<? extends Element> annotatedElements, TypeElement annotation) throws Exception {
+        HashMap<String, List<EventHandler>> handlers = new HashMap<>();
         final Messager messager = processingEnv.getMessager();
 
         /*
-         * @CommandHandler
+         * @EventHandler
          * - to non-static methods
          * - into Aggregate class
-         * - arguments: Command and optional CommandMeta
+         * - arguments: Event and optional EventMeta
          */
         for (Element element : annotatedElements) {
             ExecutableType type = (ExecutableType) element.asType();
             DeclaredType enclosingType = (DeclaredType) element.getEnclosingElement().asType();
-            String aggregateClassName = enclosingType.toString();
+            String listenerClassName = enclosingType.toString();
 
-            String commandClassName = "";
+            String eventClassName = "";
             ArrayList<Error> errors = new ArrayList<>();
 
             final String methodName = element.getSimpleName().toString();
             if (element.getKind() != ElementKind.METHOD) {
                 errors.add(new Error(
-                        "annotated element is not a method (only methods can be annotated with @CommandHandler)",
+                        "annotated element is not a method (only methods can be annotated with @EventHandler)",
                         element,
                         getAnnotationMirror(element, annotation)
                 ));
@@ -88,24 +87,15 @@ public class CommandHandlersProcessor extends AbstractProcessor {
 
             if (element.getModifiers().contains(Modifier.STATIC)) {
                 errors.add(new Error(
-                        "method is static (only non-static methods can be annotated with @CommandHandler)",
+                        "method is static (only non-static methods can be annotated with @EventHandler)",
                         element,
                         getAnnotationMirror(element, annotation)
                 ));
             }
 
-            final TypeElement aggregateType = processingEnv.getElementUtils().getTypeElement(aggregateClassName);
-            if (!aggregateType.getSuperclass().toString().equals(Aggregate.class.getCanonicalName())) {
-                errors.add(new Error(
-                        "Class does not extent an " + Aggregate.class.getCanonicalName()
-                                + " (only Aggregates can handle commands)",
-                        element.getEnclosingElement()
-                ));
-            }
-
             if (type.getParameterTypes().size() < 1) {
                 errors.add(new Error(
-                        "Command handler must have at least the Command parameter as the first parameter",
+                        "Event handler must have at least the Event parameter as the first parameter",
                         element,
                         getAnnotationMirror(element, annotation)
                 ));
@@ -113,11 +103,11 @@ public class CommandHandlersProcessor extends AbstractProcessor {
                 TypeMirror firstParam = type.getParameterTypes().get(0);
 
                 TypeElement firstParamElement = processingEnv.getElementUtils().getTypeElement(firstParam.toString());
-                commandClassName = firstParamElement.getQualifiedName().toString();
+                eventClassName = firstParamElement.getQualifiedName().toString();
 
-                if (firstParam.getKind().isPrimitive() || !typeIsInstanceOfInterface(firstParamElement, Command.class.getCanonicalName())) {
+                if (firstParam.getKind().isPrimitive() || !typeIsInstanceOfInterface(firstParamElement, Event.class.getCanonicalName())) {
                     errors.add(new Error(
-                            "First parameter must be instance of " + Command.class.getCanonicalName(),
+                            "First parameter must be instance of " + Event.class.getCanonicalName(),
                             firstParamElement
                     ));
                 } else {
@@ -125,21 +115,12 @@ public class CommandHandlersProcessor extends AbstractProcessor {
                         TypeMirror secondParam = type.getParameterTypes().get(0);
                         TypeElement secondParamElement = processingEnv.getElementUtils().getTypeElement(type.getParameterTypes().get(1).toString());
                         if (secondParam.getKind().isPrimitive() || !secondParamElement.getQualifiedName().toString()
-                                .equals(CommandMetaData.class.getCanonicalName())) {
+                                .equals(MetaData.class.getCanonicalName())) {
                             errors.add(new Error(
-                                    "Second optional parameter must be instance of " + CommandMetaData.class.getCanonicalName(),
+                                    "Second optional parameter must be instance of " + MetaData.class.getCanonicalName(),
                                     secondParamElement
                             ));
                         }
-                    }
-                    if (handlers.containsKey(commandClassName)) {
-                        CommandHandler existing = handlers.get(commandClassName);
-                        errors.add(new Error(
-                                "Only one command handler per command is permitted; this command " + commandClassName + " has " + existing.aggregateClass
-                                        + "::" + existing.methodName + " and also " + aggregateClassName + "::" + methodName.toString(),
-                                element,
-                                getAnnotationMirror(element, annotation)
-                        ));
                     }
                 }
             }
@@ -147,13 +128,15 @@ public class CommandHandlersProcessor extends AbstractProcessor {
                 errors.forEach(this::error);
                 throw new Exception();
             } else {
-                handlers.put(commandClassName, new CommandHandler(aggregateClassName, methodName.toString()));
+                List<EventHandler> existing = handlers.getOrDefault(eventClassName, new LinkedList<>());
+                existing.add(new EventHandler(listenerClassName, methodName));
+                handlers.put(eventClassName, existing);
             }
         }
         return handlers;
     }
 
-    private void writeCode(HashMap<String, CommandHandler> handlers) throws IOException {
+    private void writeCode(HashMap<String, List<EventHandler>> handlers) throws IOException {
         if (handlers.isEmpty()) {
             return;
         }
@@ -169,16 +152,23 @@ public class CommandHandlersProcessor extends AbstractProcessor {
 
             out.print("import java.util.HashMap;");
             out.println();
-            out.print("public class " + builderClassName + " implements com.dudulina.command.CommandHandlersMap ");
+            out.print("public class " + builderClassName + " implements com.dudulina.events.EventHandlersMap ");
             out.println(" {");
             out.println();
 
             out.println(" @Override");
-            out.println(" public HashMap<String, String[]> getMap() { return map;} ");
-            out.println(" private static HashMap<String, String[]> map = new HashMap<>(); ");
+            out.println(" public HashMap<String, String[][]> getMap() { return map;} ");
+            out.println(" private static HashMap<String, String[][]> map = new HashMap<>(); ");
             out.println(" static { ");
-            handlers.forEach((s, commandHandler) -> out
-                    .println("map.put(\"" + s + "\", new String[]{\"" + commandHandler.aggregateClass + "\",\"" + commandHandler.methodName + "\"});"));
+            handlers.forEach((s, eventHandlers) -> {
+                out.println("map.put(\"" + s + "\", new String[][]{");
+                eventHandlers.forEach(eventHandler -> {
+                    out.println("new String[]{");
+                    out.print("\"" + eventHandler.handlerClass + "\", \"" + eventHandler.methodName + "\"");
+                    out.println("},");
+                });
+                out.println("});");
+            });
             out.println(" } ");
             out.println();
 
@@ -199,13 +189,13 @@ public class CommandHandlersProcessor extends AbstractProcessor {
     }
 }
 
-class CommandHandler {
+class EventHandler {
 
-    public final String aggregateClass;
+    public final String handlerClass;
     public final String methodName;
 
-    public CommandHandler(String aggregateClass, String methodName) {
-        this.aggregateClass = aggregateClass;
+    public EventHandler(String aggregateClass, String methodName) {
+        this.handlerClass = aggregateClass;
         this.methodName = methodName;
     }
 }

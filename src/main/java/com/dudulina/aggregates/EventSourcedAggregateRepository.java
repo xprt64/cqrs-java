@@ -8,6 +8,7 @@ import com.dudulina.events.EventsApplierOnAggregate;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,7 +63,7 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
 
     @Override
     public List<EventWithMetaData> saveAggregate(AggregateId aggregateId, Aggregate aggregate,
-        List<EventWithMetaData> newEventsWithMeta)
+        List<EventWithMetaData> newEventsWithMeta) throws ConcurrentModificationException
     {
         final AggregateDescriptor aggregateDescriptor = new AggregateDescriptor(aggregateId,
             aggregate.getClass().getCanonicalName());
@@ -70,7 +71,7 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
             aggregateDescriptor.toString());
 
         eventStore.appendEventsForAggregate(
-            aggregateDescriptor, newEventsWithMeta, priorEvents
+            aggregateDescriptor, newEventsWithMeta, priorEvents.getVersion()
         );
         return newEventsWithMeta.stream()
             .map(temp -> temp.withVersion(priorEvents.getVersion() + 1))

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="6fb657e1-02b8-4853-8f80-72444a66e8af" name="local-repo" url="http://localhost">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/../../../java/repo" accessType="MOUNT" port="0" />
+      </webServer>
+    </option>
+  </component>
+</project>

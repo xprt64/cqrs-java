@@ -1,4 +1,4 @@
-package com.dudulina.code_generation.processors.command_handler_processor.error1;
+package com.dudulina.code_generation.processors.command_handler_processor.error2;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -14,7 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import org.junit.jupiter.api.Test;
 
-class StaticMethodTest {
+class MultipleCommandHandlersTest {
 
     @Test
     void process() throws MalformedURLException {
@@ -22,7 +22,7 @@ class StaticMethodTest {
                 .that(JavaFileObjects.forResource(__FILE__()))
                 .processedWith(new CommandHandlersProcessor())
                 .failsToCompile()
-                .withErrorContaining("static")
+                .withErrorContaining("Only one command handler per command is permitted")
         ;
     }
 
@@ -35,10 +35,14 @@ class StaticMethodTest {
 class MyAggregate extends Aggregate {
 
     @CommandHandler
-    public static void handleComm(MyCommand command) {
+    public void handleComm(MyCommand command) {
 
     }
 
+    @CommandHandler
+    public void handleComm2(MyCommand command) {
+
+    }
 }
 
 class MyCommand implements Command {

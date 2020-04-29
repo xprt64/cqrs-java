@@ -71,7 +71,6 @@ public class DefaultCommandDispatcher implements CommandDispatcher
                 .executeFunction(() -> tryDispatchCommandAndSaveAggregate(command), null);
 
         } catch (CommandExecutionFailed e) {
-            System.exit(1);
             throw new CommandExecutionFailed("Executing command " + command.getClass().getCanonicalName() + " failed: " + e.getMessage(), e);
         }
     }

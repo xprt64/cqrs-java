@@ -1,4 +1,4 @@
-package com.dudulina.code_generation.processors.command_handler_processor.error1;
+package com.dudulina.code_generation.processors.command_handler_processor.error4;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -8,13 +8,14 @@ import com.dudulina.base.Aggregate;
 import com.dudulina.base.Command;
 import com.dudulina.code_generation.annotations.CommandHandler;
 import com.dudulina.code_generation.processors.CommandHandlersProcessor;
+import com.dudulina.command.CommandMetaData;
 import com.google.testing.compile.JavaFileObjects;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import org.junit.jupiter.api.Test;
 
-class StaticMethodTest {
+class NoAggregateTest {
 
     @Test
     void process() throws MalformedURLException {
@@ -22,7 +23,7 @@ class StaticMethodTest {
                 .that(JavaFileObjects.forResource(__FILE__()))
                 .processedWith(new CommandHandlersProcessor())
                 .failsToCompile()
-                .withErrorContaining("static")
+                .withErrorContaining("only Aggregates can handle commands")
         ;
     }
 
@@ -32,13 +33,11 @@ class StaticMethodTest {
     }
 }
 
-class MyAggregate extends Aggregate {
-
+class MyAggregate {
     @CommandHandler
-    public static void handleComm(MyCommand command) {
+    public void handleComm(MyCommand command, String meta) {
 
     }
-
 }
 
 class MyCommand implements Command {
