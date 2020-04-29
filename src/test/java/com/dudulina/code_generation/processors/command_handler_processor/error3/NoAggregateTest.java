@@ -1,18 +1,17 @@
 package com.dudulina.code_generation.processors.command_handler_processor.error3;
 
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
-
-import com.dudulina.aggregates.AggregateId;
-import com.dudulina.base.Aggregate;
 import com.dudulina.base.Command;
 import com.dudulina.code_generation.annotations.CommandHandler;
 import com.dudulina.code_generation.processors.CommandHandlersProcessor;
 import com.google.testing.compile.JavaFileObjects;
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import org.junit.jupiter.api.Test;
+
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
 
 class NoAggregateTest {
 
@@ -48,7 +47,7 @@ class MyAggregate {
 class MyCommand implements Command {
 
     @Override
-    public AggregateId getAggregateId() {
+    public String getAggregateId() {
         return null;
     }
 }

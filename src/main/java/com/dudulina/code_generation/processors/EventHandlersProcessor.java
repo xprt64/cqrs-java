@@ -150,9 +150,9 @@ public class EventHandlersProcessor extends AbstractProcessor {
             out.println(";");
             out.println();
 
-            out.print("import java.util.HashMap;");
+            out.println("import java.util.HashMap;");
             out.println();
-            out.print("public class " + builderClassName + " implements com.dudulina.events.EventHandlersMap ");
+            out.println("public class " + builderClassName + " implements com.dudulina.events.EventHandlersMap ");
             out.println(" {");
             out.println();
 
@@ -161,13 +161,13 @@ public class EventHandlersProcessor extends AbstractProcessor {
             out.println(" private static HashMap<String, String[][]> map = new HashMap<>(); ");
             out.println(" static { ");
             handlers.forEach((s, eventHandlers) -> {
-                out.println("map.put(\"" + s + "\", new String[][]{");
+                out.println("    map.put(\"" + s + "\", new String[][]{");
                 eventHandlers.forEach(eventHandler -> {
-                    out.println("new String[]{");
-                    out.print("\"" + eventHandler.handlerClass + "\", \"" + eventHandler.methodName + "\"");
-                    out.println("},");
+                    out.println("         new String[]{");
+                    out.println("             \"" + eventHandler.handlerClass + "\", \"" + eventHandler.methodName + "\"");
+                    out.println("        },");
                 });
-                out.println("});");
+                out.println("    });");
             });
             out.println(" } ");
             out.println();

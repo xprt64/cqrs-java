@@ -1,14 +1,14 @@
 package com.dudulina.events;
 
-import com.dudulina.aggregates.AggregateId;
 import com.dudulina.command.CommandMetaData;
 import com.dudulina.event_store.EventSequence;
+
 import java.time.LocalDateTime;
 
 public final class MetaData {
 
     public final LocalDateTime dateCreated;
-    public final AggregateId aggregateId;
+    public final String aggregateId;
     public final String aggregateClass;
     public final CommandMetaData commandMetadata;
     public final Integer version;
@@ -17,7 +17,7 @@ public final class MetaData {
 
     public MetaData(
             LocalDateTime dateCreated,
-            AggregateId aggregateId,
+            String aggregateId,
             String aggregateClass,
             CommandMetaData commandMetadata) {
         this.dateCreated = dateCreated;
@@ -31,7 +31,7 @@ public final class MetaData {
 
     public MetaData(
             LocalDateTime dateCreated,
-            AggregateId aggregateId,
+            String aggregateId,
             String aggregateClass,
             CommandMetaData commandMetadata,
             Integer version,
@@ -48,7 +48,7 @@ public final class MetaData {
 
     public MetaData(
             LocalDateTime dateCreated,
-            AggregateId aggregateId,
+            String aggregateId,
             String aggregateClass) {
         this.dateCreated = dateCreated;
         this.aggregateId = aggregateId;

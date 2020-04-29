@@ -1,18 +1,19 @@
 package com.dudulina.event_store.memory.test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.dudulina.aggregates.AggregateDescriptor;
-import com.dudulina.aggregates.AggregateId;
 import com.dudulina.base.Event;
 import com.dudulina.event_store.AggregateEventStream;
 import com.dudulina.event_store.memory.InMemoryEventStore;
 import com.dudulina.events.EventWithMetaData;
 import com.dudulina.events.MetaData;
+import org.junit.jupiter.api.Test;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class InMemoryEventStoreTest {
 
@@ -20,7 +21,7 @@ class InMemoryEventStoreTest {
     void loadEventsForAggregate() {
         InMemoryEventStore sut = new InMemoryEventStore();
 
-        final AggregateDescriptor aggDsc123 = new AggregateDescriptor(factoryAggregateId("123"), "aggregateClass");
+        final AggregateDescriptor aggDsc123 = new AggregateDescriptor("123", "aggregateClass");
         AggregateEventStream aggStreamBefore = sut.loadEventsForAggregate(aggDsc123);
         assertEquals(0, aggStreamBefore.getVersion());
         assertEquals(0, aggStreamBefore.count());
@@ -47,9 +48,5 @@ class InMemoryEventStoreTest {
                 return super.hashCode();
             }
         };
-    }
-
-    private AggregateId factoryAggregateId(String id1){
-        return () -> id1;
     }
 }

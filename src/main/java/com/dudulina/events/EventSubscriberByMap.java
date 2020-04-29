@@ -1,6 +1,7 @@
 package com.dudulina.events;
 
 import com.dudulina.base.Event;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -11,9 +12,17 @@ import java.util.stream.Stream;
 public class EventSubscriberByMap implements EventSubscriber {
 
     private final EventHandlersMap map;
+    private final EventListenerFactory factory;
+    private final ErrorReporter errorReporter;
 
-    public EventSubscriberByMap(EventHandlersMap map) {
+    public EventSubscriberByMap(
+        EventHandlersMap map,
+        EventListenerFactory factory,
+        ErrorReporter errorReporter
+    ) {
         this.map = map;
+        this.factory = factory;
+        this.errorReporter = errorReporter;
     }
 
     @Override
@@ -22,38 +31,43 @@ public class EventSubscriberByMap implements EventSubscriber {
             .map(listenerDescriptor -> (BiConsumer<Event, MetaData>) (event1, metaData) -> {
                 String listenerClass = listenerDescriptor[0];
                 String listenerMethod = listenerDescriptor[1];
-                try{
+                Object listener = null;
+                try {
+                    Class<?> clazz = Class.forName(listenerClass);
+                    listener = factoryObject(clazz);
                     try {
-                        Class<?> clazz = Class.forName(listenerClass);
-                        Object listener = factoryObject(clazz);
-                        try {
-                            Method method = clazz.getDeclaredMethod(listenerMethod, Event.class);
-                            method.setAccessible(true);
-                            method.invoke(listener, event);
-                        } catch (NoSuchMethodException e) {
-                            Method method = clazz.getDeclaredMethod(listenerMethod, Event.class, MetaData.class);
-                            method.setAccessible(true);
-                            method.invoke(listener, event, metaData);
-                        }
+                        Method method = clazz.getDeclaredMethod(listenerMethod, event.getClass());
+                        method.setAccessible(true);
+                        method.invoke(listener, event);
                     } catch (NoSuchMethodException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
+                        Method method = clazz.getDeclaredMethod(listenerMethod, event.getClass(), metaData.getClass());
+                        method.setAccessible(true);
+                        method.invoke(listener, event, metaData);
                     }
                 }
-                catch (Exception e){
-                    e.printStackTrace();
-
+                catch (InvocationTargetException e){
+                    errorReporter.reportEventDispatchError(
+                        listener,
+                        listenerClass,
+                        listenerMethod,
+                        new EventWithMetaData(event1, metaData),
+                        e.getCause()
+                    );
+                }
+                catch (Throwable e) {
+                    errorReporter.reportEventDispatchError(
+                        listener,
+                        listenerClass,
+                        listenerMethod,
+                        new EventWithMetaData(event1, metaData),
+                        e
+                    );
                 }
             })
             .collect(Collectors.toList());
     }
 
-    private Object factoryObject(Class<?> clazz) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
-        return clazz.getDeclaredConstructor().newInstance();
+    private Object factoryObject(Class<?> clazz) {
+        return factory.factory(clazz);
     }
 }

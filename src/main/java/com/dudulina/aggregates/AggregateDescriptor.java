@@ -1,10 +1,10 @@
 package com.dudulina.aggregates;
 
 public class AggregateDescriptor {
-    public final AggregateId aggregateId;
+    public final String aggregateId;
     public final String aggregateClass;
 
-    public AggregateDescriptor(AggregateId aggregateId, String aggregateClass)
+    public AggregateDescriptor(String aggregateId, String aggregateClass)
     {
         this.aggregateId = aggregateId;
         this.aggregateClass = aggregateClass;
@@ -13,6 +13,6 @@ public class AggregateDescriptor {
     @Override
     public String toString()
     {
-        return aggregateClass + aggregateId.__toString();
+        return aggregateClass + aggregateId;
     }
 }

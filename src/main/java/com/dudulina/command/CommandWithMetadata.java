@@ -1,6 +1,5 @@
 package com.dudulina.command;
 
-import com.dudulina.aggregates.AggregateId;
 import com.dudulina.base.Command;
 
 public class CommandWithMetadata {
@@ -14,7 +13,7 @@ public class CommandWithMetadata {
         this.metadata = metadata;
     }
 
-    public AggregateId getAggregateId()
+    public String getAggregateId()
     {
         return command.getAggregateId();
     }

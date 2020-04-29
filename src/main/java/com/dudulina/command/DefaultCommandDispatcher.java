@@ -45,6 +45,23 @@ public class DefaultCommandDispatcher implements CommandDispatcher
         this.sideEffectsDispatcher = sideEffectsDispatcher;
     }
 
+    public DefaultCommandDispatcher(
+        CommandSubscriber commandSubscriber,
+        CommandApplier commandApplier,
+        AggregateRepository aggregateRepository,
+        SideEffectsDispatcher sideEffectsDispatcher
+    )
+    {
+        this.commandSubscriber = commandSubscriber;
+        this.commandApplier = commandApplier;
+        this.aggregateRepository = aggregateRepository;
+        this.concurrentProofFunctionCaller = new ConcurrentProofFunctionCaller<>();
+        this.eventMetadataFactory = new MetadataFactory() {
+        };
+        this.commandMetadataFactory = new MetadataWrapper();
+        this.sideEffectsDispatcher = sideEffectsDispatcher;
+    }
+
     @Override
     public void dispatchCommand(Command command, CommandMetaData metadata)
         throws TooManyCommandExecutionRetries, CommandExecutionFailed, AggregateExecutionException, AggregateException, CommandHandlerNotFound

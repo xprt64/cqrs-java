@@ -1,7 +1,6 @@
 package com.dudulina.testing;
 
 import com.dudulina.aggregates.AggregateExecutionException;
-import com.dudulina.aggregates.AggregateId;
 import com.dudulina.aggregates.EventApplierOnAggregate;
 import com.dudulina.base.Aggregate;
 import com.dudulina.base.Command;
@@ -16,19 +15,16 @@ import com.dudulina.testing.exceptions.ExpectedEventNotYielded;
 import com.dudulina.testing.exceptions.TooManyEventsFired;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BddAggregateTestHelper
 {
     private final CommandApplier commandApplier;
     private final CommandSubscriber commandSubscriber;
-    private AggregateId aggregateId;
+    private String aggregateId;
     private List<EventWithMetaData> priorEvents = new LinkedList<>();
     private Command command;
     private Aggregate aggregate;
@@ -77,7 +73,7 @@ public class BddAggregateTestHelper
     public BddAggregateTestHelper onAggregate(Aggregate aggregate)
     {
         this.aggregate = aggregate;
-        aggregateId = new TestAggregateId("123");
+        aggregateId = "123";
         return this;
     }
 

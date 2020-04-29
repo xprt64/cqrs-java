@@ -1,12 +1,11 @@
 package com.dudulina.events;
 
-import com.dudulina.base.Event;
-import java.util.function.BiConsumer;
-
 public interface ErrorReporter {
 
-    public void reportEventDispatchError(
-        BiConsumer<Event, MetaData> listener,
+    void reportEventDispatchError(
+        Object listenerInstance,
+        String listenerClass,
+        String methodName,
         EventWithMetaData eventWithMetaData,
         Throwable throwable
     );

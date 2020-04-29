@@ -6,5 +6,5 @@ import java.util.function.BiConsumer;
 
 public interface EventSubscriber {
 
-    public List<BiConsumer<Event, MetaData>> getListenersForEvent(Event event);
+    List<BiConsumer<Event, MetaData>> getListenersForEvent(Event event);
 }

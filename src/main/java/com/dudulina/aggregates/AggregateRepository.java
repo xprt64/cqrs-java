@@ -2,7 +2,7 @@ package com.dudulina.aggregates;
 
 import com.dudulina.base.Aggregate;
 import com.dudulina.events.EventWithMetaData;
-import java.lang.reflect.InvocationTargetException;
+
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
@@ -15,7 +15,7 @@ public interface AggregateRepository {
      * @return List of events decorated with eventId and version
      */
     List<EventWithMetaData> saveAggregate(
-        AggregateId aggregateId,
+        String aggregateId,
         Aggregate aggregate,
         List<EventWithMetaData> newEventsWithMeta
     ) throws ConcurrentModificationException;

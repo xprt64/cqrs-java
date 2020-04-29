@@ -1,11 +1,12 @@
 package com.dudulina.command;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.dudulina.aggregates.AggregateId;
 import com.dudulina.base.Command;
-import java.util.HashMap;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CommandSubscriberByMapTest {
 
@@ -42,7 +43,7 @@ class CommandSubscriberByMapTest {
 class CommandSubscriberByMapTestCommand implements Command{
 
     @Override
-    public AggregateId getAggregateId() {
+    public String getAggregateId() {
         return null;
     }
 }

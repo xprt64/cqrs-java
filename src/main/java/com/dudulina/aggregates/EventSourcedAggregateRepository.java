@@ -5,6 +5,7 @@ import com.dudulina.base.EventStore;
 import com.dudulina.event_store.AggregateEventStream;
 import com.dudulina.events.EventWithMetaData;
 import com.dudulina.events.EventsApplierOnAggregate;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
     }
 
     @Override
-    public List<EventWithMetaData> saveAggregate(AggregateId aggregateId, Aggregate aggregate,
+    public List<EventWithMetaData> saveAggregate(String aggregateId, Aggregate aggregate,
         List<EventWithMetaData> newEventsWithMeta) throws ConcurrentModificationException
     {
         final AggregateDescriptor aggregateDescriptor = new AggregateDescriptor(aggregateId,

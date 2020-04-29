@@ -16,7 +16,7 @@ public class CommandApplier
     {
         aggregate.beginCommand();
         try {
-            Method handle = aggregate.getClass().getMethod(methodName, command.getClass());
+            Method handle = aggregate.getClass().getDeclaredMethod(methodName, command.getClass());
             handle.setAccessible(true);
             handle.invoke(aggregate, command);
             return aggregate.endCommand();

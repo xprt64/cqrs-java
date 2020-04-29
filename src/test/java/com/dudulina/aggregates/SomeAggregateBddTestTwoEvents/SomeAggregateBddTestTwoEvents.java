@@ -1,14 +1,13 @@
 package com.dudulina.aggregates.SomeAggregateBddTestTwoEvents;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.dudulina.aggregates.AggregateId;
 import com.dudulina.base.Aggregate;
 import com.dudulina.base.Command;
 import com.dudulina.base.Event;
 import com.dudulina.command.CommandHandlerDescriptor;
 import com.dudulina.testing.BddAggregateTestHelper;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SomeAggregateBddTestTwoEvents
 {
@@ -20,7 +19,7 @@ public class SomeAggregateBddTestTwoEvents
         BddAggregateTestHelper helper = new BddAggregateTestHelper(commandClass -> new CommandHandlerDescriptor(Aggregate1.class.getCanonicalName(), "handle"));
 
         helper.onAggregate(sut)
-              .when(new Command1(new AggregateId1("123")))
+              .when(new Command1(new String("123")))
               .then(new Event1("some data 1"), new Event2("some data 2"));
 
         assertEquals(sut.getAppliedEventData1(), "some data 1");
@@ -62,15 +61,15 @@ class Aggregate1 extends Aggregate
 
 class Command1 implements Command
 {
-    public final AggregateId1 aggregateId;
+    public final String aggregateId;
 
-    public Command1(AggregateId1 aggregateId)
+    public Command1(String aggregateId)
     {
         this.aggregateId = aggregateId;
     }
 
     @Override
-    public AggregateId getAggregateId()
+    public String getAggregateId()
     {
         return aggregateId;
     }
@@ -93,21 +92,5 @@ class Event2 implements Event
     public Event2(String data)
     {
         this.data = data;
-    }
-}
-
-class AggregateId1 implements AggregateId
-{
-    public final String id;
-
-    public AggregateId1(String id)
-    {
-        this.id = id;
-    }
-
-    @Override
-    public String __toString()
-    {
-        return id;
     }
 }
