@@ -3,10 +3,9 @@
     <output-path>$PROJECT_DIR$/out/artifacts/cqrs_java_jar</output-path>
     <root id="archive" name="cqrs-java.jar">
       <element id="module-output" name="cqrs-java" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-core/2.11.0.rc1/jackson-core-2.11.0.rc1.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-annotations/2.11.0.rc1/jackson-annotations-2.11.0.rc1.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/fasterxml/jackson/core/jackson-databind/2.11.0.rc1/jackson-databind-2.11.0.rc1.jar" path-in-jar="/" />
-      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/19.0.0/annotations-19.0.0.jar" path-in-jar="/" />
+      <element id="directory" name="META-INF">
+        <element id="dir-copy" path="$PROJECT_DIR$/META-INF" />
+      </element>
     </root>
   </artifact>
 </component>

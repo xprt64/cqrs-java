@@ -1,0 +1,3 @@
+com.cqrs.annotations.CommandHandlersProcessor
+com.cqrs.annotations.EventHandlersProcessor
+com.cqrs.annotations.OnceEventHandlersProcessor
