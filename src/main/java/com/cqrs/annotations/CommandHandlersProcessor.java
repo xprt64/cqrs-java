@@ -11,10 +11,9 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -98,7 +97,7 @@ public class CommandHandlersProcessor extends AbstractProcessor {
             if (!aggregateType.getSuperclass().toString().equals(Aggregate.class.getCanonicalName())) {
                 errors.add(new Error(
                     "Class does not extent an " + Aggregate.class.getCanonicalName()
-                    + " (only Aggregates can handle commands)",
+                        + " (only Aggregates can handle commands)",
                     element.getEnclosingElement()
                 ));
             }
@@ -132,7 +131,7 @@ public class CommandHandlersProcessor extends AbstractProcessor {
                                 .equals(CommandMetaData.class.getCanonicalName())) {
                             errors.add(new Error(
                                 "Second optional parameter must be instance of " +
-                                CommandMetaData.class.getCanonicalName(),
+                                    CommandMetaData.class.getCanonicalName(),
                                 secondParamElement
                             ));
                         }
@@ -141,9 +140,9 @@ public class CommandHandlersProcessor extends AbstractProcessor {
                         CommandHandler existing = handlers.get(commandClassName);
                         errors.add(new Error(
                             "Only one command handler per command is permitted; this command " +
-                            commandClassName + " has " + existing.aggregateClass
-                            + "::" + existing.methodName + " and also " + aggregateClassName + "::" +
-                            methodName.toString(),
+                                commandClassName + " has " + existing.aggregateClass
+                                + "::" + existing.methodName + " and also " + aggregateClassName + "::" +
+                                methodName.toString(),
                             element,
                             getAnnotationMirror(element, annotation)
                         ));
@@ -165,17 +164,19 @@ public class CommandHandlersProcessor extends AbstractProcessor {
         HashMap<String, List<String>> byAggregate = new HashMap<>();
 
         handlers.forEach((command, value) -> {
-            List<String> aggregateHandlers =
-                byAggregate.getOrDefault(value.aggregateClass, new LinkedList<>());
+            List<String> aggregateHandlers = byAggregate.getOrDefault(value.aggregateClass, new LinkedList<>());
             aggregateHandlers.add(command + "," + value.methodName);
             byAggregate.put(value.aggregateClass, aggregateHandlers);
         });
 
         byAggregate.forEach((key, value) -> {
             try {
-                processingEnv.getFiler()
+                final Writer writer = processingEnv.getFiler()
                     .createResource(StandardLocation.SOURCE_OUTPUT, AGGREGATE_COMMAND_HANDLERS_DIRECTORY, key)
-                    .openWriter().write(String.join("\n", value));
+                    .openWriter();
+                writer.write(String.join("\n", value));
+                writer.flush();
+                writer.close();
             } catch (IOException e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
             }

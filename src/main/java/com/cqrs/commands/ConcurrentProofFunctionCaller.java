@@ -33,7 +33,8 @@ public class ConcurrentProofFunctionCaller<RETURN_TYPE> {
                     );
                 }
             } catch (Exception e) {
-               throw new CommandExecutionFailed(e);
+                e.printStackTrace();
+                throw new CommandExecutionFailed(e);
             }
         } while (true);
     }

@@ -10,7 +10,7 @@
         <module name="cqrs-java" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
+    <bytecodeTargetLevel target="8">
       <module name="cqrs-java" target="1.8" />
     </bytecodeTargetLevel>
   </component>

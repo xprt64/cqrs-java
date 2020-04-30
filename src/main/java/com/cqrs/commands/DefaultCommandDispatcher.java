@@ -13,11 +13,11 @@ import com.cqrs.events.EventWithMetaData;
 import com.cqrs.events.MetaData;
 import com.cqrs.events.MetadataFactory;
 import com.cqrs.util.Guid;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class DefaultCommandDispatcher implements CommandDispatcher
-{
+public class DefaultCommandDispatcher implements CommandDispatcher {
     private final CommandSubscriber commandSubscriber;
     private final CommandApplier commandApplier;
     private final AggregateRepository aggregateRepository;
@@ -34,8 +34,7 @@ public class DefaultCommandDispatcher implements CommandDispatcher
         MetadataFactory eventMetadataFactory,
         MetadataWrapper metadataWrapper,
         SideEffectsDispatcher sideEffectsDispatcher
-    )
-    {
+    ) {
         this.commandSubscriber = commandSubscriber;
         this.commandApplier = commandApplier;
         this.aggregateRepository = aggregateRepository;
@@ -50,8 +49,7 @@ public class DefaultCommandDispatcher implements CommandDispatcher
         CommandApplier commandApplier,
         AggregateRepository aggregateRepository,
         SideEffectsDispatcher sideEffectsDispatcher
-    )
-    {
+    ) {
         this.commandSubscriber = commandSubscriber;
         this.commandApplier = commandApplier;
         this.aggregateRepository = aggregateRepository;
@@ -64,8 +62,7 @@ public class DefaultCommandDispatcher implements CommandDispatcher
 
     @Override
     public void dispatchCommand(Command command, CommandMetaData metadata)
-        throws TooManyCommandExecutionRetries, CommandExecutionFailed, AggregateExecutionException, AggregateException, CommandHandlerNotFound
-    {
+        throws TooManyCommandExecutionRetries, CommandExecutionFailed, AggregateExecutionException, AggregateException, CommandHandlerNotFound {
         List<EventWithMetaData> sideEffects = dispatchCommandAndSaveAggregate(
             commandMetadataFactory.wrapCommandWithMetadata(command, metadata)
         );
@@ -73,28 +70,30 @@ public class DefaultCommandDispatcher implements CommandDispatcher
     }
 
     private List<EventWithMetaData> tryDispatchCommandAndSaveAggregate(CommandWithMetadata command)
-        throws AggregateException, AggregateExecutionException, CommandHandlerNotFound
-    {
+        throws AggregateException, AggregateExecutionException, CommandHandlerNotFound {
         CommandHandlerAndAggregate handlerAndAggregate = loadCommandHandlerAndAggregate(command);
         List<EventWithMetaData> dispatchResult = applyCommandAndReturnSideEffects(command, handlerAndAggregate);
         return aggregateRepository.saveAggregate(command.getAggregateId(), handlerAndAggregate.aggregate, dispatchResult);
     }
 
     private List<EventWithMetaData> dispatchCommandAndSaveAggregate(CommandWithMetadata command)
-        throws TooManyCommandExecutionRetries, CommandExecutionFailed, AggregateExecutionException, AggregateException, CommandHandlerNotFound
-    {
+        throws TooManyCommandExecutionRetries, CommandExecutionFailed, AggregateExecutionException, AggregateException, CommandHandlerNotFound {
         try {
             return concurrentProofFunctionCaller
                 .executeFunction(() -> tryDispatchCommandAndSaveAggregate(command), null);
 
         } catch (CommandExecutionFailed e) {
-            throw new CommandExecutionFailed("Executing command " + command.getClass().getCanonicalName() + " failed: " + e.getMessage(), e);
+            e.printStackTrace();
+            throw new CommandExecutionFailed(
+                "Executing command " + command.command.getClass().getCanonicalName() + " failed: "
+                    + e.getMessage()
+                , e
+            );
         }
     }
 
     private CommandHandlerAndAggregate loadCommandHandlerAndAggregate(CommandWithMetadata command)
-        throws AggregateException, AggregateExecutionException, CommandHandlerNotFound
-    {
+        throws AggregateException, AggregateExecutionException, CommandHandlerNotFound {
 
         CommandHandlerDescriptor handler = commandSubscriber.getAggregateForCommand(command.command.getClass());
         Aggregate aggregate = aggregateRepository.loadAggregate(
@@ -103,8 +102,7 @@ public class DefaultCommandDispatcher implements CommandDispatcher
         return new CommandHandlerAndAggregate(handler, aggregate);
     }
 
-    private EventWithMetaData decorateEventWithMetaData(Event event, MetaData metaData)
-    {
+    private EventWithMetaData decorateEventWithMetaData(Event event, MetaData metaData) {
         return new EventWithMetaData(event, metaData.withEventId(Guid.generate()));
     }
 
@@ -112,14 +110,13 @@ public class DefaultCommandDispatcher implements CommandDispatcher
         CommandWithMetadata command,
         CommandHandlerAndAggregate handlerAndAggregate
     )
-        throws AggregateExecutionException
-    {
+        throws AggregateExecutionException {
         Aggregate aggregate = handlerAndAggregate.aggregate;
         CommandHandlerDescriptor handler = handlerAndAggregate.commandHandler;
         MetaData metaData = eventMetadataFactory.factoryEventMetadata(command, aggregate);
         List<Event> eventList = commandApplier.applyCommand(aggregate, command.command, handler.methodName);
         return eventList.stream()
-                        .map(event -> decorateEventWithMetaData(event, metaData))
-                        .collect(Collectors.toList());
+            .map(event -> decorateEventWithMetaData(event, metaData))
+            .collect(Collectors.toList());
     }
 }
