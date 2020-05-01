@@ -1,9 +1,10 @@
 package com.cqrs.base;
 
-import com.cqrs.aggregates.EventApplierOnAggregate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+
+import static com.cqrs.aggregates.EventApplierOnAggregate.applyEvent;
 
 public class Aggregate
 {
@@ -19,7 +20,7 @@ public class Aggregate
     {
         Objects.requireNonNull(event);
         events.add(event);
-        EventApplierOnAggregate.applyEvent(this, event, null);
+        applyEvent(this, event, null);
     }
 
     public List<Event> endCommand()

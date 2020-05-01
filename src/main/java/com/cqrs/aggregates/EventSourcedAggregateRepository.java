@@ -4,7 +4,6 @@ import com.cqrs.base.Aggregate;
 import com.cqrs.base.EventStore;
 import com.cqrs.event_store.exceptions.StorageException;
 import com.cqrs.events.EventWithMetaData;
-import com.cqrs.events.EventsApplierOnAggregate;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -16,14 +15,12 @@ import java.util.List;
 public class EventSourcedAggregateRepository implements AggregateRepository {
 
     final public EventStore eventStore;
-    final public EventsApplierOnAggregate eventsApplierOnAggregate;
     final private HashMap<String, Integer> loadedAggregateVersions = new HashMap<>();
 
     public EventSourcedAggregateRepository(
-        EventStore eventStore,
-        EventsApplierOnAggregate eventsApplierOnAggregate) {
+        EventStore eventStore
+    ) {
         this.eventStore = eventStore;
-        this.eventsApplierOnAggregate = eventsApplierOnAggregate;
     }
 
     private static Aggregate factoryAggregate(AggregateDescriptor aggregateDescriptor)
@@ -47,13 +44,13 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
         int lastVersion = 0;
         try {
             lastVersion = eventStore.loadEventsForAggregate(aggregateDescriptor, eventWithMetaData -> {
-                try {
-                    eventsApplierOnAggregate.applyEvent(aggregate, eventWithMetaData);
+                //try {
+                    EventApplierOnAggregate.applyEvent(aggregate, eventWithMetaData.event, eventWithMetaData.metadata);
                     return true;
-                } catch (AggregateExecutionException e) {
-                    errors.add(e);
-                    return false;
-                }
+//                } catch (AggregateExecutionException e) {
+//                    errors.add(e);
+//                    return false;
+//                }
             });
         } catch (StorageException e) {
             e.printStackTrace();
