@@ -1,9 +1,11 @@
 package com.cqrs.events;
 
 import com.cqrs.base.Event;
+import com.cqrs.events.EventHandlersMap.Handler;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -27,20 +29,19 @@ public class EventSubscriberByMap implements EventSubscriber {
 
     @Override
     public List<BiConsumer<Event, MetaData>> getListenersForEvent(Event event) {
-        return Stream.of(map.getMap().getOrDefault(event.getClass().getCanonicalName(), new String[][]{}))
+        final List<Handler> handlersForThisEvent = map.getMap().getOrDefault(event.getClass().getCanonicalName(), new LinkedList<>());
+        return handlersForThisEvent.stream()
             .map(listenerDescriptor -> (BiConsumer<Event, MetaData>) (event1, metaData) -> {
-                String listenerClass = listenerDescriptor[0];
-                String listenerMethod = listenerDescriptor[1];
                 Object listener = null;
                 try {
-                    Class<?> clazz = Class.forName(listenerClass);
+                    Class<?> clazz = Class.forName(listenerDescriptor.handlerClass);
                     listener = factoryObject(clazz);
                     try {
-                        Method method = clazz.getDeclaredMethod(listenerMethod, event.getClass());
+                        Method method = clazz.getDeclaredMethod(listenerDescriptor.methodName, event.getClass());
                         method.setAccessible(true);
                         method.invoke(listener, event);
                     } catch (NoSuchMethodException e) {
-                        Method method = clazz.getDeclaredMethod(listenerMethod, event.getClass(), metaData.getClass());
+                        Method method = clazz.getDeclaredMethod(listenerDescriptor.methodName, event.getClass(), metaData.getClass());
                         method.setAccessible(true);
                         method.invoke(listener, event, metaData);
                     }
@@ -48,8 +49,8 @@ public class EventSubscriberByMap implements EventSubscriber {
                 catch (InvocationTargetException e){
                     errorReporter.reportEventDispatchError(
                         listener,
-                        listenerClass,
-                        listenerMethod,
+                        listenerDescriptor.handlerClass,
+                        listenerDescriptor.methodName,
                         new EventWithMetaData(event1, metaData),
                         e.getCause()
                     );
@@ -57,8 +58,8 @@ public class EventSubscriberByMap implements EventSubscriber {
                 catch (Throwable e) {
                     errorReporter.reportEventDispatchError(
                         listener,
-                        listenerClass,
-                        listenerMethod,
+                        listenerDescriptor.handlerClass,
+                        listenerDescriptor.methodName,
                         new EventWithMetaData(event1, metaData),
                         e
                     );

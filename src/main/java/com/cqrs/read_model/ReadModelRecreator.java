@@ -1,15 +1,15 @@
 package com.cqrs.read_model;
 
 import com.cqrs.base.EventStore;
-import com.cqrs.event_store.SeekableEventStream;
+import com.cqrs.event_store.exceptions.StorageException;
 import com.cqrs.read_model.progress.TaskProgressCalculator;
 import com.cqrs.read_model.progress.TaskProgressReporter;
 import com.cqrs.reflection.ReadModelReflector;
+
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ReadModelRecreator
-{
+public class ReadModelRecreator {
     final private EventStore eventStore;
     final private Consumer<String> logger;
     final private TaskProgressReporter taskProgressReporter;
@@ -22,8 +22,7 @@ public class ReadModelRecreator
         TaskProgressReporter taskProgressReporter,
         ReadModelEventApplier readModelEventApplier,
         ReadModelReflector readModelReflector
-    )
-    {
+    ) {
         this.eventStore = eventStore;
         this.logger = logger;
         this.taskProgressReporter = taskProgressReporter;
@@ -31,32 +30,29 @@ public class ReadModelRecreator
         this.readModelReflector = readModelReflector;
     }
 
-    public void recreateRead(ReadModel readModel)
-    {
+    public void recreateRead(ReadModel readModel) throws StorageException {
         List<String> eventClasses = readModelReflector.getEventClassesFromReadModel(readModel.getClass());
 
         log(String.join(",", eventClasses));
         log("loading events...");
 
-        SeekableEventStream allEvents = eventStore.loadEventsByClassNames(eventClasses);
-
         log("applying events...");
 
         TaskProgressCalculator taskProgress =
-            null != taskProgressReporter ? new TaskProgressCalculator(allEvents.count()) : null;
+            null != taskProgressReporter ? new TaskProgressCalculator(eventStore.countEventsByClassNames(eventClasses)) : null;
 
-        allEvents.forEachRemaining(eventWithMetadata -> {
+        eventStore.loadEventsByClassNames(eventClasses, eventWithMetadata -> {
             readModelEventApplier.applyEventOnlyOnce(
                 readModel,
                 readModelReflector.getEventHandlerForEvent(eventWithMetadata.event.getClass()),
                 eventWithMetadata
             );
             reportProgress(taskProgress);
+            return true;
         });
     }
 
-    private void reportProgress(TaskProgressCalculator taskProgress)
-    {
+    private void reportProgress(TaskProgressCalculator taskProgress) {
         if (null != taskProgressReporter && null != taskProgress) {
             taskProgress.increment();
             taskProgressReporter
@@ -69,8 +65,7 @@ public class ReadModelRecreator
         }
     }
 
-    private void log(String message)
-    {
+    private void log(String message) {
         if (logger != null) {
             logger.accept(message);
         }

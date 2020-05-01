@@ -2,46 +2,32 @@ package com.cqrs.aggregates;
 
 import com.cqrs.base.Aggregate;
 import com.cqrs.base.EventStore;
-import com.cqrs.event_store.AggregateEventStream;
+import com.cqrs.event_store.exceptions.StorageException;
 import com.cqrs.events.EventWithMetaData;
 import com.cqrs.events.EventsApplierOnAggregate;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class EventSourcedAggregateRepository implements AggregateRepository {
 
     final public EventStore eventStore;
     final public EventsApplierOnAggregate eventsApplierOnAggregate;
-    final private HashMap<String, AggregateEventStream> aggregateToEventStreamMap = new HashMap<>();
+    final private HashMap<String, Integer> loadedAggregateVersions = new HashMap<>();
 
     public EventSourcedAggregateRepository(
         EventStore eventStore,
-        EventsApplierOnAggregate eventsApplierOnAggregate)
-    {
+        EventsApplierOnAggregate eventsApplierOnAggregate) {
         this.eventStore = eventStore;
         this.eventsApplierOnAggregate = eventsApplierOnAggregate;
     }
 
-    @Override
-    public Aggregate loadAggregate(AggregateDescriptor aggregateDescriptor)
-        throws AggregateException, AggregateExecutionException
-    {
-        Aggregate aggregate = factoryAggregate(aggregateDescriptor);
-        AggregateEventStream priorEvents = eventStore.loadEventsForAggregate(aggregateDescriptor);
-        aggregateToEventStreamMap.put(aggregateDescriptor.toString(), priorEvents);
-        eventsApplierOnAggregate.applyEventsOnAggregate(aggregate, iteratorToList(priorEvents));
-        return aggregate;
-    }
-
     private static Aggregate factoryAggregate(AggregateDescriptor aggregateDescriptor)
-        throws AggregateException
-    {
+        throws AggregateException {
         String aggregateClass = aggregateDescriptor.aggregateClass;
         try {
             Class<?> clazz = Class.forName(aggregateClass);
@@ -53,30 +39,47 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
         }
     }
 
-    private List<EventWithMetaData> iteratorToList(AggregateEventStream iterator)
-    {
-        List<EventWithMetaData> actualList = new ArrayList<>();
-        while (iterator.hasNext()) {
-            actualList.add(iterator.next());
+    @Override
+    public Aggregate loadAggregate(AggregateDescriptor aggregateDescriptor)
+        throws AggregateException, AggregateExecutionException {
+        Aggregate aggregate = factoryAggregate(aggregateDescriptor);
+        List<Throwable> errors = new LinkedList<>();
+        int lastVersion = 0;
+        try {
+            lastVersion = eventStore.loadEventsForAggregate(aggregateDescriptor, eventWithMetaData -> {
+                try {
+                    eventsApplierOnAggregate.applyEvent(aggregate, eventWithMetaData);
+                    return true;
+                } catch (AggregateExecutionException e) {
+                    errors.add(e);
+                    return false;
+                }
+            });
+        } catch (StorageException e) {
+            e.printStackTrace();
         }
-        return actualList;
+        if (errors.size() > 0) {
+            throw new AggregateExecutionException(aggregate, errors.get(0));
+        }
+        loadedAggregateVersions.put(aggregateDescriptor.toString(), lastVersion);
+        return aggregate;
     }
 
     @Override
     public List<EventWithMetaData> saveAggregate(String aggregateId, Aggregate aggregate,
-        List<EventWithMetaData> newEventsWithMeta) throws ConcurrentModificationException
-    {
+                                                 List<EventWithMetaData> newEventsWithMeta) throws ConcurrentModificationException, StorageException {
         final AggregateDescriptor aggregateDescriptor = new AggregateDescriptor(
             aggregateId,
             aggregate.getClass().getCanonicalName()
         );
-        AggregateEventStream priorEvents = aggregateToEventStreamMap.get(aggregateDescriptor.toString());
-
+        int prevVersion = loadedAggregateVersions.get(aggregateDescriptor.toString());
         eventStore.appendEventsForAggregate(
-            aggregateDescriptor, newEventsWithMeta, priorEvents.getVersion()
+            aggregateDescriptor, newEventsWithMeta, prevVersion
         );
-        return newEventsWithMeta.stream()
-            .map(temp -> temp.withVersion(priorEvents.getVersion() + 1))
-            .collect(Collectors.toList());
+        List<EventWithMetaData> decoratedEvents = new LinkedList<>();
+        for (EventWithMetaData eventWithMetaData : newEventsWithMeta) {
+            decoratedEvents.add(eventWithMetaData.withVersion(++prevVersion));
+        }
+        return decoratedEvents;
     }
 }

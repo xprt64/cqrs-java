@@ -1,30 +1,22 @@
 package com.cqrs.annotations;
 
+import com.cqrs.base.Event;
+import com.cqrs.events.MetaData;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.io.Writer;
+import java.util.*;
 import java.util.stream.Collectors;
 
 abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
-    public static final String packageName = "com.cqrs.annotations";
-
-    protected boolean codeWriten = false;
-
-    abstract protected HashMap<String, List<EventHandler>> getEventHandlers(
-        Set<? extends Element> annotatedElements,
-        TypeElement annotation
-    ) throws Exception;
-
     protected static AnnotationMirror getAnnotationMirror(Element element, TypeElement annotation) {
         for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
             if (annotationMirror.getAnnotationType()
@@ -36,72 +28,46 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
         return null;
     }
 
-    protected abstract String getAnnotationName();
-
-    protected abstract String getGeneratedClassName();
+    protected abstract String getOutputDirectory();
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        annotations.forEach(annotation -> {
+            try {
+                Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
+                writeCode(getEventHandlers(annotatedElements, annotation));
+            } catch (Exception e) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "" + e.getMessage());
+            }
+        });
 
-                try {
-                    TypeElement annotation = processingEnv.getElementUtils().getTypeElement(getAnnotationName());
-                    Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
-                    processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, this + ", elements: " + annotatedElements.size());
-                    writeCode(getEventHandlers(annotatedElements, annotation));
-                } catch (Exception e) {
-                    return false;
-                }
-
-        try {
-            writeCode(new HashMap<>());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         return false;
     }
 
-    protected void writeCode(HashMap<String, List<EventHandler>> handlers) throws IOException {
-        if (codeWriten) {
-            return;
-        }
-        codeWriten = true;
+    protected void writeCode(HashMap<String, List<EventHandler>> byListener) throws IOException {
 
-        JavaFileObject builderFile = processingEnv.getFiler()
-            .createSourceFile(packageName + "." + getGeneratedClassName());
-        try (PrintWriter out = new PrintWriter(builderFile.openWriter())) {
-
-            out.print("package ");
-            out.print(packageName);
-            out.println(";");
-            out.println();
-
-            out.println("import java.util.HashMap;");
-            out.println();
-            out.println(
-                "public class " + getGeneratedClassName() + " implements com.cqrs.events.EventHandlersMap ");
-            out.println(" {");
-            out.println();
-
-            out.println(" @Override");
-            out.println(" public HashMap<String, String[][]> getMap() { return map;} ");
-            out.println(" private static HashMap<String, String[][]> map = new HashMap<>(); ");
-            out.println(" static { ");
-            handlers.forEach((s, eventHandlers) -> {
-                out.println("    map.put(\"" + s + "\", new String[][]{");
+        byListener.forEach((listenerClass, eventHandlers) -> {
+            try {
+                System.out.println("Event listeners for " + listenerClass);
+                System.out.println("Write to " + StandardLocation.SOURCE_OUTPUT + "/" + getOutputDirectory() + "/" + listenerClass);
+                final Writer writer = processingEnv.getFiler()
+                    .createResource(StandardLocation.SOURCE_OUTPUT, getOutputDirectory(), listenerClass)
+                    .openWriter();
                 eventHandlers.forEach(eventHandler -> {
-                    out.println("         new String[]{");
-                    out.println(
-                        "             \"" + eventHandler.handlerClass + "\", \"" + eventHandler.methodName +
-                        "\"");
-                    out.println("        },");
+                    try {
+                        System.out.println("     " + eventHandler.eventClass + "," + eventHandler.methodName);
+                        writer.write(eventHandler.eventClass + "," + eventHandler.methodName);
+                    } catch (IOException e) {
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+                    }
                 });
-                out.println("    });");
-            });
-            out.println(" } ");
-            out.println();
+                writer.flush();
+                writer.close();
+            } catch (IOException e) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+            }
+        });
 
-            out.println("}");
-        }
     }
 
     protected boolean typeIsInstanceOfInterface(TypeElement type, String base) {
@@ -121,13 +87,96 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
         }
     }
 
+    private HashMap<String, List<EventHandler>> getEventHandlers(
+        Set<? extends Element> annotatedElements,
+        TypeElement annotation
+    ) throws Exception {
+        HashMap<String, List<EventHandler>> handlers = new HashMap<>();
+        /*
+         * @EventHandler
+         * - to non-static methods
+         * - arguments: Event and optional EventMeta
+         */
+        for (Element element : annotatedElements) {
+            ExecutableType type = (ExecutableType) element.asType();
+            DeclaredType enclosingType = (DeclaredType) element.getEnclosingElement().asType();
+            String listenerClassName = enclosingType.toString();
+
+            String eventClassName = "";
+            ArrayList<Error> errors = new ArrayList<>();
+
+            final String methodName = element.getSimpleName().toString();
+            if (element.getKind() != ElementKind.METHOD) {
+                processingEnv.getMessager().printMessage(
+                    Diagnostic.Kind.ERROR,
+                    "only methods can be annotated with @" + annotation.getQualifiedName() + "",
+                    element,
+                    getAnnotationMirror(element, annotation)
+                );
+                throw new Exception();
+            }
+
+            if (element.getModifiers().contains(Modifier.STATIC)) {
+                errors.add(new com.cqrs.annotations.Error(
+                    "only non-static methods can be annotated with @" + annotation.getQualifiedName() + "",
+                    element,
+                    getAnnotationMirror(element, annotation)
+                ));
+            }
+
+            if (type.getParameterTypes().size() < 1) {
+                errors.add(new com.cqrs.annotations.Error(
+                    "Event handler must have at least the Event parameter as the first parameter",
+                    element,
+                    getAnnotationMirror(element, annotation)
+                ));
+            } else {
+                TypeMirror firstParam = type.getParameterTypes().get(0);
+                TypeElement firstParamElement = processingEnv.getElementUtils().getTypeElement(firstParam.toString());
+                eventClassName = firstParamElement.getQualifiedName().toString();
+
+                if (firstParam.getKind().isPrimitive() ||
+                    !typeIsInstanceOfInterface(firstParamElement, Event.class.getCanonicalName())) {
+                    errors.add(new com.cqrs.annotations.Error(
+                        "First parameter must be instance of " + Event.class.getCanonicalName(),
+                        firstParamElement
+                    ));
+                } else {
+                    if (type.getParameterTypes().size() > 1) {
+                        TypeMirror secondParam = type.getParameterTypes().get(0);
+                        TypeElement secondParamElement = processingEnv.getElementUtils()
+                            .getTypeElement(type.getParameterTypes().get(1).toString());
+                        if (secondParam.getKind().isPrimitive() ||
+                            !secondParamElement.getQualifiedName().toString()
+                                .equals(MetaData.class.getCanonicalName())) {
+                            errors.add(new com.cqrs.annotations.Error(
+                                "Second optional parameter must be instance of " +
+                                    MetaData.class.getCanonicalName(),
+                                secondParamElement
+                            ));
+                        }
+                    }
+                }
+            }
+            if (errors.size() > 0) {
+                errors.forEach(this::error);
+                throw new Exception();
+            } else {
+                List<EventHandler> existing = handlers.getOrDefault(listenerClassName, new LinkedList<>());
+                existing.add(new EventHandler(eventClassName, methodName));
+                handlers.put(listenerClassName, existing);
+            }
+        }
+        return handlers;
+    }
+
     static class EventHandler {
 
-        public final String handlerClass;
+        public final String eventClass;
         public final String methodName;
 
-        public EventHandler(String aggregateClass, String methodName) {
-            this.handlerClass = aggregateClass;
+        public EventHandler(String eventClass, String methodName) {
+            this.eventClass = eventClass;
             this.methodName = methodName;
         }
     }

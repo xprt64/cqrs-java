@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -27,8 +28,12 @@ class EventHandlersProcessorTest {
             .and()
             .generatesFileNamed(
                 SOURCE_OUTPUT,
-                EventHandlersProcessor.packageName,
-                EventHandlersProcessor.EVENT_HANDLERS_MAP_IMPL + ".java"
+                EventHandlersProcessor.EVENT_HANDLERS_DIRECTORY,
+                MyEventListener.class.getCanonicalName()
+            )
+            .withStringContents(
+                Charset.defaultCharset(),
+                "com.cqrs.annotations.processors.event_handler_processor.ok1.EventHandlersProcessorTest.MyEvent1,handleEvent1"
             )
         ;
     }
@@ -37,21 +42,21 @@ class EventHandlersProcessorTest {
         File source = new File("src/test/java/" + this.getClass().getPackage().getName().replace('.', '/') + "/" + new Throwable().getStackTrace()[0].getFileName());
         return source.toURI().toURL();
     }
-}
 
-class MyEventListener {
+    class MyEventListener {
 
-    @EventHandler
-    public void handleEvent1(MyEvent1 event) {
+        @EventHandler
+        public void handleEvent1(MyEvent1 event) {
 
+        }
+
+        @CommandHandler
+        public void handleComm2(MyEvent1 event, MetaData meta) {
+
+        }
     }
 
-    @CommandHandler
-    public void handleComm2(MyEvent1 event, MetaData meta) {
+    class MyEvent1 implements Event {
 
     }
-}
-
-class MyEvent1 implements Event {
-
 }

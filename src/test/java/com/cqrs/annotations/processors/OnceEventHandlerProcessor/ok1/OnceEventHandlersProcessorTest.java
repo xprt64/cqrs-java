@@ -1,6 +1,5 @@
 package com.cqrs.annotations.processors.OnceEventHandlerProcessor.ok1;
 
-import com.cqrs.annotations.AbstractEventHandlerProcessor;
 import com.cqrs.annotations.OnceEventHandler;
 import com.cqrs.annotations.OnceEventHandlersProcessor;
 import com.cqrs.base.Event;
@@ -10,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
@@ -26,8 +26,12 @@ class OnceEventHandlersProcessorTest {
             .and()
             .generatesFileNamed(
                 SOURCE_OUTPUT,
-                AbstractEventHandlerProcessor.packageName,
-                OnceEventHandlersProcessor.EVENT_HANDLERS_FILE_NAME + ".java"
+                OnceEventHandlersProcessor.EVENT_HANDLERS_DIRECTORY,
+                MyEventListener.class.getCanonicalName()
+            )
+            .withStringContents(
+                Charset.defaultCharset(),
+                "com.cqrs.annotations.processors.OnceEventHandlerProcessor.ok1.OnceEventHandlersProcessorTest.MyEvent1,handleEvent1"
             )
         ;
     }
@@ -49,5 +53,4 @@ class OnceEventHandlersProcessorTest {
     class MyEvent1 implements Event {
 
     }
-
 }

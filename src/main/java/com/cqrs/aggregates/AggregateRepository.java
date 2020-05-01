@@ -1,6 +1,7 @@
 package com.cqrs.aggregates;
 
 import com.cqrs.base.Aggregate;
+import com.cqrs.event_store.exceptions.StorageException;
 import com.cqrs.events.EventWithMetaData;
 
 import java.util.ConcurrentModificationException;
@@ -18,5 +19,5 @@ public interface AggregateRepository {
         String aggregateId,
         Aggregate aggregate,
         List<EventWithMetaData> newEventsWithMeta
-    ) throws ConcurrentModificationException;
+    ) throws ConcurrentModificationException, StorageException;
 }

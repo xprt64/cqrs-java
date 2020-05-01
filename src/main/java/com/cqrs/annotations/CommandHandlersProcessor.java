@@ -17,16 +17,11 @@ import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SupportedAnnotationTypes("com.cqrs.*")
+@SupportedAnnotationTypes("com.cqrs.annotations.CommandHandler")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-//@AutoService(Processor.class)
 public class CommandHandlersProcessor extends AbstractProcessor {
 
-    public static final String builderClassName = "CommandHandlersMapImpl";
-    public static final String packageName = "com.cqrs.annotations";
-    public static final String annotationName = "com.cqrs.annotations.CommandHandler";
-    public static final String AGGREGATE_COMMAND_HANDLERS_DIRECTORY = "aggregateCommandHandlers";
-    private boolean codeWriten = false;
+    public static final String AGGREGATE_COMMAND_HANDLERS_DIRECTORY = "com_cqrs_annotations_aggregateCommandHandlers";
 
     private static AnnotationMirror getAnnotationMirror(Element element, TypeElement annotation) {
         for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
@@ -41,14 +36,13 @@ public class CommandHandlersProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        if (codeWriten) {
-            return false;
-        }
-        TypeElement annotation = processingEnv.getElementUtils().getTypeElement(annotationName);
-        try {
-            writeCode(getCommandHandlers(roundEnv.getElementsAnnotatedWith(annotation), annotation));
-        } catch (Exception e) {
-        }
+        annotations.forEach(annotation -> {
+            try {
+                writeCode(getCommandHandlers(roundEnv.getElementsAnnotatedWith(annotation), annotation));
+            } catch (Exception e) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "" + e.getMessage());
+            }
+        });
         return false;
     }
 
@@ -160,7 +154,6 @@ public class CommandHandlersProcessor extends AbstractProcessor {
     }
 
     private void writeCode(HashMap<String, CommandHandler> handlers) {
-
         HashMap<String, List<String>> byAggregate = new HashMap<>();
 
         handlers.forEach((command, value) -> {

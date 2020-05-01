@@ -9,6 +9,7 @@ import com.cqrs.base.Command;
 import com.cqrs.base.Event;
 import com.cqrs.commands.exceptions.CommandExecutionFailed;
 import com.cqrs.commands.exceptions.TooManyCommandExecutionRetries;
+import com.cqrs.event_store.exceptions.StorageException;
 import com.cqrs.events.EventWithMetaData;
 import com.cqrs.events.MetaData;
 import com.cqrs.events.MetadataFactory;
@@ -70,7 +71,7 @@ public class DefaultCommandDispatcher implements CommandDispatcher {
     }
 
     private List<EventWithMetaData> tryDispatchCommandAndSaveAggregate(CommandWithMetadata command)
-        throws AggregateException, AggregateExecutionException, CommandHandlerNotFound {
+        throws AggregateException, AggregateExecutionException, CommandHandlerNotFound, StorageException {
         CommandHandlerAndAggregate handlerAndAggregate = loadCommandHandlerAndAggregate(command);
         List<EventWithMetaData> dispatchResult = applyCommandAndReturnSideEffects(command, handlerAndAggregate);
         return aggregateRepository.saveAggregate(command.getAggregateId(), handlerAndAggregate.aggregate, dispatchResult);
