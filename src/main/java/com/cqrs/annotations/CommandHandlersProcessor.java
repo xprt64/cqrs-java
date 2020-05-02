@@ -49,8 +49,6 @@ public class CommandHandlersProcessor extends AbstractProcessor {
     private HashMap<String, CommandHandler> getCommandHandlers(Set<? extends Element> annotatedElements,
                                                                TypeElement annotation
     ) throws Exception {
-        processingEnv.getMessager()
-            .printMessage(Diagnostic.Kind.WARNING, this + ", elements: " + annotatedElements.size());
         HashMap<String, CommandHandler> handlers = new HashMap<>();
         final Messager messager = processingEnv.getMessager();
         /*

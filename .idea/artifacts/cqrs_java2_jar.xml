@@ -4,7 +4,7 @@
     <root id="archive" name="cqrs-java2.jar">
       <element id="module-output" name="cqrs-java" />
       <element id="directory" name="META-INF">
-        <element id="dir-copy" path="$PROJECT_DIR$/META-INF" />
+        <element id="dir-copy" path="$PROJECT_DIR$/src/main/resources/META-INF" />
       </element>
     </root>
   </artifact>
