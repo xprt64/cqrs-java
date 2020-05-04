@@ -22,23 +22,27 @@ public class CommandSubscriberByMap implements CommandSubscriber {
     }
 
     @Override
-    public CommandHandlerDescriptor getAggregateForCommand(Class<?> commandClass) throws CommandHandlerNotFound {
-        CommandHandlerDescriptor entry = getMap().get(commandClass.getCanonicalName());
+    public CommandHandlerDescriptor getAggregateForCommand(Class<?> commandClass
+    ) throws CommandHandlerNotFound {
+        CommandHandlerDescriptor entry = getMap(commandClass).get(commandClass.getCanonicalName());
         if (entry == null) {
             throw new CommandHandlerNotFound(commandClass.getCanonicalName());
         }
         return entry;
     }
 
-    private HashMap<String, CommandHandlerDescriptor> getMap() {
+    private HashMap<String, CommandHandlerDescriptor> getMap(Class<?> clazz) {
         HashMap<String, CommandHandlerDescriptor> handlerPerCommand = new HashMap<>();
-        resourceReader.forEachLineInDirectory(DIRECTORY_PATH, (aggregateName, line) -> {
-            //System.out.println(line);
-            String[] commandAndMethod = line.split(",", 2);
-            final String command = commandAndMethod[0];
-            final String method = commandAndMethod[1];
-            handlerPerCommand.put(command, new CommandHandlerDescriptor(aggregateName, method));
-        });
+        resourceReader.forEachLineInDirectory(
+            clazz,
+            DIRECTORY_PATH,
+            (aggregateName, line) -> {
+                String[] commandAndMethod = line.split(",", 2);
+                final String command = commandAndMethod[0];
+                final String method = commandAndMethod[1];
+                handlerPerCommand.put(command, new CommandHandlerDescriptor(aggregateName, method));
+            }
+        );
         return handlerPerCommand;
     }
 

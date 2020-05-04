@@ -162,12 +162,16 @@ public class CommandHandlersProcessor extends AbstractProcessor {
 
         byAggregate.forEach((key, value) -> {
             try {
+                System.out.println("Command Handler for " + key);
+                System.out.println("    Write to " + StandardLocation.SOURCE_OUTPUT + "/" + AGGREGATE_COMMAND_HANDLERS_DIRECTORY + "/" + key);
                 final Writer writer = processingEnv.getFiler()
                     .createResource(StandardLocation.SOURCE_OUTPUT, AGGREGATE_COMMAND_HANDLERS_DIRECTORY, key)
                     .openWriter();
-                writer.write(String.join("\n", value));
+                String commandAndHandler = String.join("\n", value);
+                writer.write(commandAndHandler);
                 writer.flush();
                 writer.close();
+                System.out.println("    " + commandAndHandler);
             } catch (IOException e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
             }

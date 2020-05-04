@@ -29,7 +29,7 @@ public class EventSubscriberByMap implements EventSubscriber {
 
     @Override
     public List<BiConsumer<Event, MetaData>> getListenersForEvent(Event event) {
-        final List<Handler> handlersForThisEvent = map.getMap().getOrDefault(event.getClass().getCanonicalName(), new LinkedList<>());
+        final List<Handler> handlersForThisEvent = map.getMap(event.getClass()).getOrDefault(event.getClass().getCanonicalName(), new LinkedList<>());
         return handlersForThisEvent.stream()
             .map(listenerDescriptor -> (BiConsumer<Event, MetaData>) (event1, metaData) -> {
                 Object listener = null;

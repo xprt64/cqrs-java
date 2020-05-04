@@ -17,16 +17,20 @@ abstract public class EventHandlersMapFromFile implements EventHandlersMap {
     }
 
     @Override
-    public HashMap<String, List<Handler>> getMap() {
+    public HashMap<String, List<Handler>> getMap(Class<?> clazz) {
         HashMap<String, List<Handler>> handlersPerCommand = new HashMap<>();
-        resourceReader.forEachLineInDirectory(DIRECTORY_PATH, (aggregateName, line) -> {
-            String[] commandAndMethod = line.split(",", 2);
-            final String command = commandAndMethod[0];
-            final String method = commandAndMethod[1];
-            List<Handler> existing = handlersPerCommand.getOrDefault(command, new LinkedList<>());
-            existing.add(new Handler(aggregateName, method));
-            handlersPerCommand.put(command, existing);
-        });
+        resourceReader.forEachLineInDirectory(
+            clazz,
+            DIRECTORY_PATH,
+            (aggregateName, line) -> {
+                String[] commandAndMethod = line.split(",", 2);
+                final String command = commandAndMethod[0];
+                final String method = commandAndMethod[1];
+                List<Handler> existing = handlersPerCommand.getOrDefault(command, new LinkedList<>());
+                existing.add(new Handler(aggregateName, method));
+                handlersPerCommand.put(command, existing);
+            }
+        );
         return handlersPerCommand;
     }
 

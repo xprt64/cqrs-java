@@ -14,7 +14,7 @@ class ResourceReaderTest {
         ResourceReader sut = new ResourceReader();
         StringBuilder stringBuilder = new StringBuilder();
 
-        sut.forEachLineInDirectory("ResourceReaderTestDir", (file, line) -> {
+        sut.forEachLineInDirectory(this.getClass(), "ResourceReaderTestDir", (file, line) -> {
             stringBuilder.append(file).append(":").append(line).append("\n");
         });
 

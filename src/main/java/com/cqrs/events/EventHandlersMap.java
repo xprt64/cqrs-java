@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public interface EventHandlersMap {
-    HashMap<String, List<Handler>> getMap();
+    HashMap<String, List<Handler>> getMap(Class<?> clazz);
 
     class Handler{
         public final String handlerClass;
