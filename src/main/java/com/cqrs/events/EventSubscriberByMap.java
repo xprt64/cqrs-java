@@ -1,7 +1,9 @@
 package com.cqrs.events;
 
+import com.cqrs.annotations.HandlersMap;
 import com.cqrs.base.Event;
-import com.cqrs.events.EventHandlersMap.Handler;
+import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.infrastructure.AbstractFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -9,17 +11,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class EventSubscriberByMap implements EventSubscriber {
 
-    private final EventHandlersMap map;
-    private final EventListenerFactory factory;
+    private final HandlersMap map;
+    private final AbstractFactory factory;
     private final ErrorReporter errorReporter;
 
     public EventSubscriberByMap(
-        EventHandlersMap map,
-        EventListenerFactory factory,
+        HandlersMap map,
+        AbstractFactory factory,
         ErrorReporter errorReporter
     ) {
         this.map = map;

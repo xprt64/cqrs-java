@@ -1,9 +1,9 @@
-package com.cqrs.events;
+package com.cqrs.commands;
 
 import java.util.HashMap;
 import java.util.List;
 
-public interface EventHandlersMap {
+public interface CommandValidatorsMap {
     HashMap<String, List<Handler>> getMap(Class<?> clazz);
 
     class Handler{

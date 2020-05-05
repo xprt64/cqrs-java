@@ -1,3 +1,4 @@
 com.cqrs.annotations.CommandHandlersProcessor
 com.cqrs.annotations.EventHandlersProcessor
 com.cqrs.annotations.OnceEventHandlersProcessor
+com.cqrs.annotations.CommandValidatorProcessor

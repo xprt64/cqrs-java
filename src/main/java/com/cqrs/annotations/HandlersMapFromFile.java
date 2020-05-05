@@ -1,37 +1,38 @@
-package com.cqrs.events;
+package com.cqrs.annotations;
 
+import com.cqrs.annotations.HandlersMap;
 import com.cqrs.util.ResourceReader;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-abstract public class EventHandlersMapFromFile implements EventHandlersMap {
+abstract public class HandlersMapFromFile implements HandlersMap {
 
     private final String DIRECTORY_PATH;
 
     private ResourceReader resourceReader = new ResourceReader();
 
-    public EventHandlersMapFromFile(String DIRECTORY_PATH) {
+    public HandlersMapFromFile(String DIRECTORY_PATH) {
         this.DIRECTORY_PATH = DIRECTORY_PATH;
     }
 
     @Override
-    public HashMap<String, List<Handler>> getMap(Class<?> clazz) {
-        HashMap<String, List<Handler>> handlersPerCommand = new HashMap<>();
+    public HashMap<String, List<Handler>> getMap(Class<?> anyClazzFromResourcePackage) {
+        HashMap<String, List<Handler>> handlersPerMessage = new HashMap<>();
         resourceReader.forEachLineInDirectory(
-            clazz,
+            anyClazzFromResourcePackage,
             DIRECTORY_PATH,
             (aggregateName, line) -> {
                 String[] commandAndMethod = line.split(",", 2);
                 final String command = commandAndMethod[0];
                 final String method = commandAndMethod[1];
-                List<Handler> existing = handlersPerCommand.getOrDefault(command, new LinkedList<>());
+                List<Handler> existing = handlersPerMessage.getOrDefault(command, new LinkedList<>());
                 existing.add(new Handler(aggregateName, method));
-                handlersPerCommand.put(command, existing);
+                handlersPerMessage.put(command, existing);
             }
         );
-        return handlersPerCommand;
+        return handlersPerMessage;
     }
 
     public void setResourceReader(ResourceReader resourceReader) {

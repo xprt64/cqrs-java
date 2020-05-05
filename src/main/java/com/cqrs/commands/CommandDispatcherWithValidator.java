@@ -18,11 +18,11 @@ public class CommandDispatcherWithValidator implements CommandDispatcher {
 
     @Override
     public void dispatchCommand(Command command, CommandMetaData metadata)
-        throws TooManyCommandExecutionRetries, CommandValidationFailed, AggregateExecutionException, AggregateException, CommandHandlerNotFound
+        throws TooManyCommandExecutionRetries, CommandRejectedByValidators, AggregateExecutionException, AggregateException, CommandHandlerNotFound
     {
-        List<Throwable> errors = commandValidator.validateCommand(command);
+        List<Throwable> errors = commandValidator.validateCommand(new CommandWithMetadata(command, metadata));
         if(!errors.isEmpty()){
-            throw new CommandValidationFailed(errors);
+            throw new CommandRejectedByValidators(errors);
         }
         commandDispatcher.dispatchCommand(command, metadata);
     }

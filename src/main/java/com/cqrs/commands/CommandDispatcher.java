@@ -7,9 +7,9 @@ import com.cqrs.commands.exceptions.TooManyCommandExecutionRetries;
 
 public interface CommandDispatcher {
 	void dispatchCommand(Command command, CommandMetaData metadata)
-		throws TooManyCommandExecutionRetries, AggregateExecutionException, AggregateException, CommandHandlerNotFound, CommandValidationFailed;
+		throws TooManyCommandExecutionRetries, AggregateExecutionException, AggregateException, CommandHandlerNotFound, CommandRejectedByValidators;
 	default void dispatchCommand(Command command)
-		throws TooManyCommandExecutionRetries, AggregateExecutionException, AggregateException, CommandHandlerNotFound, CommandValidationFailed {
+		throws TooManyCommandExecutionRetries, AggregateExecutionException, AggregateException, CommandHandlerNotFound, CommandRejectedByValidators {
 		dispatchCommand(command, null);
 	}
 }
