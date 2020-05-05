@@ -49,18 +49,22 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
         byListener.forEach((listenerClass, eventHandlers) -> {
             try {
                 System.out.println("Event listeners for " + listenerClass);
-                System.out.println("Write to " + StandardLocation.SOURCE_OUTPUT + "/" + getOutputDirectory() + "/" + listenerClass);
+                System.out.println(
+                    "Write to " + StandardLocation.SOURCE_OUTPUT + "/" + getOutputDirectory() + "/" +
+                    listenerClass);
                 final Writer writer = processingEnv.getFiler()
                     .createResource(StandardLocation.SOURCE_OUTPUT, getOutputDirectory(), listenerClass)
                     .openWriter();
-                eventHandlers.forEach(eventHandler -> {
-                    try {
-                        System.out.println("     " + eventHandler.eventClass + "," + eventHandler.methodName);
-                        writer.write(eventHandler.eventClass + "," + eventHandler.methodName);
-                    } catch (IOException e) {
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
-                    }
-                });
+                try {
+                    writer.write(
+                        eventHandlers.stream()
+                            .map(eventHandler -> eventHandler.eventClass + "," + eventHandler.methodName)
+                            .collect(Collectors.joining("\n"))
+                    );
+                } catch (IOException e) {
+                    processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.getMessage());
+                }
+
                 writer.flush();
                 writer.close();
             } catch (IOException e) {
@@ -132,7 +136,8 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
                 ));
             } else {
                 TypeMirror firstParam = type.getParameterTypes().get(0);
-                TypeElement firstParamElement = processingEnv.getElementUtils().getTypeElement(firstParam.toString());
+                TypeElement firstParamElement =
+                    processingEnv.getElementUtils().getTypeElement(firstParam.toString());
                 eventClassName = firstParamElement.getQualifiedName().toString();
 
                 if (firstParam.getKind().isPrimitive() ||
@@ -151,7 +156,7 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
                                 .equals(MetaData.class.getCanonicalName())) {
                             errors.add(new com.cqrs.annotations.Error(
                                 "Second optional parameter must be instance of " +
-                                    MetaData.class.getCanonicalName(),
+                                MetaData.class.getCanonicalName(),
                                 secondParamElement
                             ));
                         }

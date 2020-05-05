@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
@@ -31,24 +30,24 @@ public class ResourceReader {
     public void forEachLineInDirectory(
         Class<?> clazz,
         String dirPath,
-        BiConsumer<String, String> consumer,
-        BiConsumer<String, IOException> errorReporter
+        LineConsumer consumer,
+        ErrorReporter errorReporter
     ) {
         try {
             listResourceFilesInDir(clazz, dirPath).forEach(file -> {
                 String resourcePath = concatenatePath(dirPath, file);
                 new BufferedReader(new InputStreamReader(getResourceAsStream(resourcePath)))
-                    .lines().forEach(line -> consumer.accept(file, line));
+                    .lines().forEach(line -> consumer.consumeLineInFile(file, line));
 
             });
         } catch (IOException e) {
             if (errorReporter != null) {
-                errorReporter.accept(e.getMessage(), e);
+                errorReporter.reportError(e.getMessage(), e);
             }
         }
     }
 
-    public void forEachLineInDirectory(Class<?> clazz, String dirPath, BiConsumer<String, String> consumer) {
+    public void forEachLineInDirectory(Class<?> clazz, String dirPath, LineConsumer consumer) {
         forEachLineInDirectory(clazz, dirPath, consumer, null);
     }
 
@@ -105,4 +104,12 @@ public class ResourceReader {
 
         throw new UnsupportedOperationException("Cannot list files for URL " + dirURL);
     }
+
+    public interface LineConsumer{
+        void consumeLineInFile(String fileName, String line);
+    }
+
+     public interface ErrorReporter{
+        void reportError(String errorMessage, IOException cause);
+     }
 }

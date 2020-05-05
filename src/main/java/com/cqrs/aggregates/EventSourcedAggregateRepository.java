@@ -45,8 +45,10 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
         try {
             lastVersion = eventStore.loadEventsForAggregate(aggregateDescriptor, eventWithMetaData -> {
                 //try {
-                    EventApplierOnAggregate.applyEvent(aggregate, eventWithMetaData.event, eventWithMetaData.metadata);
-                    return true;
+                EventApplierOnAggregate.applyEvent(aggregate,
+                                                   eventWithMetaData.event,
+                                                   eventWithMetaData.metadata);
+                return true;
 //                } catch (AggregateExecutionException e) {
 //                    errors.add(e);
 //                    return false;
@@ -63,8 +65,11 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
     }
 
     @Override
-    public List<EventWithMetaData> saveAggregate(String aggregateId, Aggregate aggregate,
-                                                 List<EventWithMetaData> newEventsWithMeta) throws ConcurrentModificationException, StorageException {
+    public List<EventWithMetaData> saveAggregate(
+        String aggregateId,
+        Aggregate aggregate,
+        List<EventWithMetaData> newEventsWithMeta
+    ) throws ConcurrentModificationException, StorageException {
         final AggregateDescriptor aggregateDescriptor = new AggregateDescriptor(
             aggregateId,
             aggregate.getClass().getCanonicalName()

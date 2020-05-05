@@ -33,7 +33,8 @@ class EventHandlersProcessorTest {
             )
             .withStringContents(
                 Charset.defaultCharset(),
-                "com.cqrs.annotations.processors.event_handler_processor.ok1.EventHandlersProcessorTest.MyEvent1,handleEvent1"
+                "com.cqrs.annotations.processors.event_handler_processor.ok1.EventHandlersProcessorTest.MyEvent1,handleEvent1\n" +
+                "com.cqrs.annotations.processors.event_handler_processor.ok1.EventHandlersProcessorTest.MyEvent2,handleEvent2"
             )
         ;
     }
@@ -50,6 +51,11 @@ class EventHandlersProcessorTest {
 
         }
 
+        @EventHandler
+        public void handleEvent2(MyEvent2 event) {
+
+        }
+
         @CommandHandler
         public void handleComm2(MyEvent1 event, MetaData meta) {
 
@@ -57,6 +63,10 @@ class EventHandlersProcessorTest {
     }
 
     class MyEvent1 implements Event {
+
+    }
+
+    class MyEvent2 implements Event {
 
     }
 }
