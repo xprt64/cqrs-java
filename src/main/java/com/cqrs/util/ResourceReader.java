@@ -53,7 +53,7 @@ public class ResourceReader {
 
     private Stream<String> listResourceFilesInDir(Class<?> clazz, String directoryPath) throws IOException {
         try {
-            return Arrays.stream(getResourceListing(clazz, directoryPath));
+            return Arrays.stream(getResourceListing(clazz, directoryPath)).sorted();
         } catch (UnsupportedOperationException | URISyntaxException e) {
             throw new IOException(e.getMessage(), e);
         }
