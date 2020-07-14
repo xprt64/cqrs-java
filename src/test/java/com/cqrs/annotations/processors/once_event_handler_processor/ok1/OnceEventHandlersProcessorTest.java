@@ -1,4 +1,4 @@
-package com.cqrs.annotations.processors.OnceEventHandlerProcessor.ok1;
+package com.cqrs.annotations.processors.once_event_handler_processor.ok1;
 
 import com.cqrs.annotations.OnceEventHandler;
 import com.cqrs.annotations.OnceEventHandlersProcessor;
@@ -31,7 +31,7 @@ class OnceEventHandlersProcessorTest {
             )
             .withStringContents(
                 Charset.defaultCharset(),
-                "com.cqrs.annotations.processors.OnceEventHandlerProcessor.ok1.OnceEventHandlersProcessorTest.MyEvent1,handleEvent1"
+                "com.cqrs.annotations.processors.once_event_handler_processor.ok1.OnceEventHandlersProcessorTest.MyEvent1,handleEvent1"
             )
         ;
     }
