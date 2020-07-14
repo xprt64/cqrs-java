@@ -16,6 +16,7 @@ import com.cqrs.testing.exceptions.TooManyEventsFired;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -71,9 +72,10 @@ public class BddAggregateTestHelper {
         return this;
     }
 
-    public void given(Event... priorEvents) {
+    public BddAggregateTestHelper given(Event... priorEvents) {
         this.priorEvents =
             Arrays.stream(priorEvents).map(this::decorateEventWithMetaData).collect(Collectors.toList());
+        return this;
     }
 
     public BddAggregateTestHelper when(Command command) {
@@ -92,6 +94,29 @@ public class BddAggregateTestHelper {
         List<Event> newEvents = executeCommand(command);
 
         assertTheseEvents(Arrays.asList(expectedEvents), newEvents);
+    }
+
+    public void thenThrows(Class<? extends Throwable> expectedClass) throws Exception{
+        try{
+            Objects.requireNonNull(command);
+
+            priorEvents.forEach(eventWithMetaData -> EventApplierOnAggregate.applyEvent(aggregate,
+                    eventWithMetaData.event,
+                    eventWithMetaData.metadata));
+
+            executeCommand(command);
+        } catch (AggregateExecutionException e) {
+            Throwable cause = e.getCause();
+            if(cause instanceof InvocationTargetException){
+                cause = cause.getCause();
+            }
+            String causeName = cause.getClass().getCanonicalName();
+            if(!causeName.equals(expectedClass.getCanonicalName())){
+                throw new Exception("Expected " + expectedClass.getCanonicalName() + " but thrown " + causeName);
+            }
+        } catch (Throwable e) {
+            throw new Exception("Expected " + expectedClass.getCanonicalName() + " but thrown " + e.getClass().getCanonicalName());
+        }
     }
 
     public List<Event> executeCommand(Command $command
