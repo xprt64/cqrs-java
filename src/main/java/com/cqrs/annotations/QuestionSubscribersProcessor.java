@@ -1,13 +1,14 @@
 package com.cqrs.annotations;
 
-import com.cqrs.base.Event;
-import com.cqrs.events.MetaData;
-
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.StandardLocation;
@@ -16,7 +17,11 @@ import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
+@SupportedAnnotationTypes("com.cqrs.annotations.QuestionSubscriber")
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
+public class QuestionSubscribersProcessor extends AbstractProcessor {
+    public static final String QUESTION_SUBSCRIBERS_DIRECTORY = "com_cqrs_annotations_questionSubscribers";
+
     protected static AnnotationMirror getAnnotationMirror(Element element, TypeElement annotation) {
         for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
             if (annotationMirror.getAnnotationType()
@@ -28,14 +33,16 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
         return null;
     }
 
-    protected abstract String getOutputDirectory();
+    private String getOutputDirectory(){
+        return QUESTION_SUBSCRIBERS_DIRECTORY;
+    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         annotations.forEach(annotation -> {
             try {
                 Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
-                writeCode(getEventHandlers(annotatedElements, annotation));
+                writeCode(getQuestionSubscribers(annotatedElements, annotation));
             } catch (Exception e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "" + e.getMessage());
             }
@@ -44,11 +51,11 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
         return false;
     }
 
-    protected void writeCode(HashMap<String, List<EventHandler>> byListener) throws IOException {
+    protected void writeCode(HashMap<String, List<HandlerDescriptor>> byListener) throws IOException {
 
         byListener.forEach((listenerClass, eventHandlers) -> {
             try {
-                System.out.println("Event listeners for " + listenerClass);
+                System.out.println("Question subscribers for " + listenerClass);
                 System.out.println(
                     "    Write to " + StandardLocation.SOURCE_OUTPUT + "/" + getOutputDirectory() + "/" +
                     listenerClass);
@@ -58,7 +65,7 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
                 try {
                     writer.write(
                         eventHandlers.stream()
-                            .map(eventHandler -> eventHandler.eventClass + "," + eventHandler.methodName)
+                            .map(queryHandler -> queryHandler.parameterClass + "," + queryHandler.methodName)
                             .collect(Collectors.joining("\n"))
                     );
                 } catch (IOException e) {
@@ -74,12 +81,8 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
 
     }
 
-    protected boolean typeIsInstanceOfInterface(TypeElement type, String base) {
-        return type.getInterfaces()
-            .stream()
-            .map(TypeMirror::toString)
-            .collect(Collectors.toList())
-            .contains(base);
+    protected boolean typeExtendsSuperClass(TypeElement type, String base) {
+        return type.getSuperclass().toString().equals(base);
     }
 
     protected void error(Error error) {
@@ -91,22 +94,23 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
         }
     }
 
-    private HashMap<String, List<EventHandler>> getEventHandlers(
+    private HashMap<String, List<HandlerDescriptor>> getQuestionSubscribers(
         Set<? extends Element> annotatedElements,
         TypeElement annotation
     ) throws Exception {
-        HashMap<String, List<EventHandler>> handlers = new HashMap<>();
+        HashMap<String, List<HandlerDescriptor>> handlers = new HashMap<>();
         /*
-         * @EventHandler
+         * @QuestionSubscriber
          * - to non-static methods
-         * - arguments: Event and optional EventMeta
+         * - arguments: Question
+         * - return: void (or anything but is ignored)
          */
         for (Element element : annotatedElements) {
             ExecutableType type = (ExecutableType) element.asType();
             DeclaredType enclosingType = (DeclaredType) element.getEnclosingElement().asType();
             String listenerClassName = enclosingType.toString();
 
-            String eventClassName = "";
+            String queryClassName = "";
             ArrayList<Error> errors = new ArrayList<>();
 
             final String methodName = element.getSimpleName().toString();
@@ -121,16 +125,16 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
             }
 
             if (element.getModifiers().contains(Modifier.STATIC)) {
-                errors.add(new com.cqrs.annotations.Error(
+                errors.add(new Error(
                     "only non-static methods can be annotated with @" + annotation.getQualifiedName() + "",
                     element,
                     getAnnotationMirror(element, annotation)
                 ));
             }
 
-            if (type.getParameterTypes().size() < 1) {
-                errors.add(new com.cqrs.annotations.Error(
-                    "Event handler must have at least the Event parameter as the first parameter",
+            if (type.getParameterTypes().size() != 1) {
+                errors.add(new Error(
+                    "Question subscriber must have only one parameter, the query",
                     element,
                     getAnnotationMirror(element, annotation)
                 ));
@@ -138,51 +142,25 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
                 TypeMirror firstParam = type.getParameterTypes().get(0);
                 TypeElement firstParamElement =
                     processingEnv.getElementUtils().getTypeElement(firstParam.toString());
-                eventClassName = firstParamElement.getQualifiedName().toString();
+                queryClassName = firstParamElement.getQualifiedName().toString();
 
                 if (firstParam.getKind().isPrimitive() ||
-                    !typeIsInstanceOfInterface(firstParamElement, Event.class.getCanonicalName())) {
-                    errors.add(new com.cqrs.annotations.Error(
-                        "First parameter must be instance of " + Event.class.getCanonicalName(),
+                    !typeExtendsSuperClass(firstParamElement, Object.class.getCanonicalName())) {
+                    errors.add(new Error(
+                        "First parameter of a query handler must extend " + Object.class.getCanonicalName(),
                         firstParamElement
                     ));
-                } else {
-                    if (type.getParameterTypes().size() > 1) {
-                        TypeMirror secondParam = type.getParameterTypes().get(0);
-                        TypeElement secondParamElement = processingEnv.getElementUtils()
-                            .getTypeElement(type.getParameterTypes().get(1).toString());
-                        if (secondParam.getKind().isPrimitive() ||
-                            !secondParamElement.getQualifiedName().toString()
-                                .equals(MetaData.class.getCanonicalName())) {
-                            errors.add(new com.cqrs.annotations.Error(
-                                "Second optional parameter must be instance of " +
-                                MetaData.class.getCanonicalName(),
-                                secondParamElement
-                            ));
-                        }
-                    }
                 }
             }
             if (errors.size() > 0) {
                 errors.forEach(this::error);
                 throw new Exception();
             } else {
-                List<EventHandler> existing = handlers.getOrDefault(listenerClassName, new LinkedList<>());
-                existing.add(new EventHandler(eventClassName, methodName));
+                List<HandlerDescriptor> existing = handlers.getOrDefault(listenerClassName, new LinkedList<>());
+                existing.add(new HandlerDescriptor(queryClassName, methodName));
                 handlers.put(listenerClassName, existing);
             }
         }
         return handlers;
-    }
-
-    static class EventHandler {
-
-        public final String eventClass;
-        public final String methodName;
-
-        public EventHandler(String eventClass, String methodName) {
-            this.eventClass = eventClass;
-            this.methodName = methodName;
-        }
     }
 }
