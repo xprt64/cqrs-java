@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BddAggregateTestHelper {
     private final CommandApplier commandApplier;
@@ -45,16 +46,16 @@ public class BddAggregateTestHelper {
         List<String> actual =
             actualEvents.stream().map(BddAggregateTestHelper::hashEvent).collect(Collectors.toList());
 
-        final ArrayList<String> tooFew = new ArrayList<String>(expected);
+        final ArrayList<String> tooFew = new ArrayList<>(expected);
         tooFew.removeAll(actual);
         if (tooFew.size() > 0) {
-            throw new ExpectedEventNotYielded("Expected events not emited: " + tooFew.toString());
+            throw new ExpectedEventNotYielded(tooFew.size() + " more events expected to be emitted: " + String.join("\n", tooFew));
         }
 
         final ArrayList<String> tooMany = new ArrayList<String>(actual);
         tooMany.removeAll(expected);
         if (tooMany.size() > 0) {
-            throw new TooManyEventsFired("To many events emited: " + tooMany.toString());
+            throw new TooManyEventsFired("Too many events emitted: " + String.join("\n", tooMany));
         }
     }
 
@@ -167,7 +168,7 @@ public class BddAggregateTestHelper {
         /**
          * Uses reflection and recursion to dump the contents of the given object using a custom, JSON-like notation (but not JSON).<p>
          * Parses all fields of the runtime class including super class fields, which are successively prefixed with "{@code super.}" at each level.<p>
-         * {@code Number}s, {@code enum}s, and {@code null} references are formatted using the standard {@link String#valueOf()} method.
+         * {@code Number}s, {@code enum}s, and {@code null} references are formatted using the standard {@link String::valueOf()} method.
          * {@code CharSequences}s are wrapped with quotes.<p>
          * The recursive call invokes only one method on each recursive call, so limit of the object-graph depth is one-to-one with the stack overflow limit.<p>
          * Backwards references are tracked using a "visitor map" which is an instance of {@link IdentityHashMap}.
@@ -188,6 +189,11 @@ public class BddAggregateTestHelper {
                 object instanceof Number || object instanceof Character || object instanceof Boolean ||
                 object.getClass().isPrimitive() || object.getClass().isEnum()) {
                 return String.valueOf(object);
+            }
+
+            if(object instanceof List){
+                Stream<String> stream = ((List) object).stream().map(o -> dump(o));
+                return stream.collect(Collectors.joining("\n"));
             }
 
             StringBuilder builder = new StringBuilder();
