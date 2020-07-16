@@ -55,7 +55,7 @@ public class BddAggregateTestHelper {
         final ArrayList<String> tooMany = new ArrayList<String>(actual);
         tooMany.removeAll(expected);
         if (tooMany.size() > 0) {
-            throw new TooManyEventsFired("Too many events emitted: " + String.join("\n", tooMany));
+            throw new TooManyEventsFired("Aggregate emitted too many events: " + String.join("\n", tooMany));
         }
     }
 
@@ -70,6 +70,7 @@ public class BddAggregateTestHelper {
     public BddAggregateTestHelper onAggregate(Aggregate aggregate) {
         this.aggregate = aggregate;
         aggregateId = "123";
+        priorEvents = Collections.emptyList();
         return this;
     }
 
@@ -113,10 +114,10 @@ public class BddAggregateTestHelper {
             }
             String causeName = cause.getClass().getCanonicalName();
             if(!causeName.equals(expectedClass.getCanonicalName())){
-                throw new Exception("Expected " + expectedClass.getCanonicalName() + " but thrown " + causeName);
+                throw new Exception("Aggregate was expected to throw " + expectedClass.getCanonicalName() + " but threw " + causeName);
             }
         } catch (Throwable e) {
-            throw new Exception("Expected " + expectedClass.getCanonicalName() + " but thrown " + e.getClass().getCanonicalName());
+            throw new Exception("Aggregate was expected to throw " + expectedClass.getCanonicalName() + " but threw " + e.getClass().getCanonicalName());
         }
     }
 
