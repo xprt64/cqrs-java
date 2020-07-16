@@ -12,7 +12,9 @@ import com.cqrs.commands.CommandSubscriber;
 import com.cqrs.events.EventWithMetaData;
 import com.cqrs.events.MetaData;
 import com.cqrs.testing.exceptions.ExpectedEventNotYielded;
+import com.cqrs.testing.exceptions.NoExceptionThrown;
 import com.cqrs.testing.exceptions.TooManyEventsFired;
+import com.cqrs.testing.exceptions.WrongExceptionClassThrown;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -86,42 +88,48 @@ public class BddAggregateTestHelper {
     }
 
     public void then(Event... expectedEvents
-    ) throws TooManyEventsFired, ExpectedEventNotYielded, CommandHandlerNotFound, AggregateExecutionException {
+    ) {
         Objects.requireNonNull(command);
 
         priorEvents.forEach(eventWithMetaData -> EventApplierOnAggregate.applyEvent(aggregate,
-                                                                                    eventWithMetaData.event,
-                                                                                    eventWithMetaData.metadata));
-
-        List<Event> newEvents = executeCommand(command);
-
+            eventWithMetaData.event,
+            eventWithMetaData.metadata));
+        List<Event> newEvents;
+        try {
+            newEvents = executeCommand(command);
+        } catch (CommandHandlerNotFound | AggregateExecutionException e) {
+            throw new RuntimeException(e);
+        }
         assertTheseEvents(Arrays.asList(expectedEvents), newEvents);
     }
 
-    public void thenThrows(Class<? extends Throwable> expectedClass) throws Exception{
-        try{
+    public void thenThrows(Class<? extends Throwable> expectedClass) {
+        try {
             Objects.requireNonNull(command);
 
             priorEvents.forEach(eventWithMetaData -> EventApplierOnAggregate.applyEvent(aggregate,
-                    eventWithMetaData.event,
-                    eventWithMetaData.metadata));
+                eventWithMetaData.event,
+                eventWithMetaData.metadata));
 
             executeCommand(command);
+            throw new NoExceptionThrown("Aggregate was expected to throw " + expectedClass.getCanonicalName() + " but didn't");
         } catch (AggregateExecutionException e) {
             Throwable cause = e.getCause();
-            if(cause instanceof InvocationTargetException){
+            if (cause instanceof InvocationTargetException) {
                 cause = cause.getCause();
             }
             String causeName = cause.getClass().getCanonicalName();
-            if(!causeName.equals(expectedClass.getCanonicalName())){
-                throw new Exception("Aggregate was expected to throw " + expectedClass.getCanonicalName() + " but threw " + causeName);
+            if (!causeName.equals(expectedClass.getCanonicalName())) {
+                throw new WrongExceptionClassThrown("Aggregate was expected to throw " + expectedClass.getCanonicalName() + " but threw " + causeName);
             }
+        } catch (NoExceptionThrown e) {
+            throw e;
         } catch (Throwable e) {
-            throw new Exception("Aggregate was expected to throw " + expectedClass.getCanonicalName() + " but threw " + e.getClass().getCanonicalName());
+            throw new WrongExceptionClassThrown("Aggregate was expected to throw " + expectedClass.getCanonicalName() + " but threw " + e.getClass().getCanonicalName());
         }
     }
 
-    public List<Event> executeCommand(Command $command
+    private List<Event> executeCommand(Command $command
     ) throws CommandHandlerNotFound, AggregateExecutionException {
         CommandHandlerDescriptor handler = commandSubscriber.getAggregateForCommand(command.getClass());
 
@@ -133,7 +141,7 @@ public class BddAggregateTestHelper {
     }
 
     public void assertTheseEvents(List<Event> expectedEvents, List<Event> actualEvents
-    ) throws TooManyEventsFired, ExpectedEventNotYielded {
+    ) {
         assertEventListsAreEqual(expectedEvents, actualEvents);
         checkForToManyEvents(actualEvents.size() - expectedEvents.size());
     }
@@ -192,7 +200,7 @@ public class BddAggregateTestHelper {
                 return String.valueOf(object);
             }
 
-            if(object instanceof List){
+            if (object instanceof List) {
                 Stream<String> stream = ((List) object).stream().map(o -> dump(o));
                 return stream.collect(Collectors.joining("\n"));
             }
@@ -202,9 +210,9 @@ public class BddAggregateTestHelper {
             if (object instanceof CharSequence) {
                 builder.append("\"").append(object).append("\"");
             } else if (visitorMap.containsKey(object)) {
-               // builder.append("(sysId#").append(sysId).append(")");
+                // builder.append("(sysId#").append(sysId).append(")");
             } else {
-              //  visitorMap.put(object, object);
+                //  visitorMap.put(object, object);
 
                 StringBuilder tabs = new StringBuilder();
                 for (int t = 0; t < tabCount; t++) {

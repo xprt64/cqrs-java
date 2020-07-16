@@ -5,7 +5,10 @@ import com.cqrs.aggregates.AggregateRepository;
 import com.cqrs.base.Aggregate;
 import com.cqrs.base.Command;
 import com.cqrs.base.Event;
-import com.cqrs.commands.*;
+import com.cqrs.commands.CommandApplier;
+import com.cqrs.commands.CommandHandlerDescriptor;
+import com.cqrs.commands.DefaultCommandDispatcher;
+import com.cqrs.commands.MetadataWrapper;
 import com.cqrs.events.EventWithMetaData;
 import com.cqrs.events.MetadataFactory;
 import org.junit.jupiter.api.Test;
@@ -27,7 +30,6 @@ class DefaultCommandDispatcherTest
             commandClass -> new CommandHandlerDescriptor(Aggregate1.class.getCanonicalName(), "handle"),
             new CommandApplier(),
             getAggregateRepository(),
-            new ConcurrentProofFunctionCaller<>(),
             new MetadataFactory()
             {
             },

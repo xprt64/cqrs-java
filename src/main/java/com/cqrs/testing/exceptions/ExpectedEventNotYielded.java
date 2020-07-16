@@ -1,6 +1,6 @@
 package com.cqrs.testing.exceptions;
 
-public class ExpectedEventNotYielded extends Exception
+public class ExpectedEventNotYielded extends RuntimeException
 {
     public ExpectedEventNotYielded(String message)
     {

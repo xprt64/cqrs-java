@@ -24,7 +24,7 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
     }
 
     private static Aggregate factoryAggregate(AggregateDescriptor aggregateDescriptor)
-        throws AggregateException {
+        throws AggregateTypeException {
         String aggregateClass = aggregateDescriptor.aggregateClass;
         try {
             Class<?> clazz = Class.forName(aggregateClass);
@@ -32,34 +32,20 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
             ctor.setAccessible(true);
             return (Aggregate) ctor.newInstance();
         } catch (ClassNotFoundException | InstantiationException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-            throw new AggregateException(aggregateDescriptor, e);
+            throw new AggregateTypeException(aggregateDescriptor, e);
         }
     }
 
     @Override
     public Aggregate loadAggregate(AggregateDescriptor aggregateDescriptor)
-        throws AggregateException, AggregateExecutionException {
+        throws AggregateTypeException, AggregateExecutionException, StorageException {
         Aggregate aggregate = factoryAggregate(aggregateDescriptor);
-        List<Throwable> errors = new LinkedList<>();
-        int lastVersion = 0;
-        try {
-            lastVersion = eventStore.loadEventsForAggregate(aggregateDescriptor, eventWithMetaData -> {
-                //try {
-                EventApplierOnAggregate.applyEvent(aggregate,
-                                                   eventWithMetaData.event,
-                                                   eventWithMetaData.metadata);
-                return true;
-//                } catch (AggregateExecutionException e) {
-//                    errors.add(e);
-//                    return false;
-//                }
-            });
-        } catch (StorageException e) {
-            e.printStackTrace();
-        }
-        if (errors.size() > 0) {
-            throw new AggregateExecutionException(aggregate, errors.get(0));
-        }
+        int lastVersion = eventStore.loadEventsForAggregate(aggregateDescriptor, eventWithMetaData -> {
+            EventApplierOnAggregate.applyEvent(aggregate,
+                eventWithMetaData.event,
+                eventWithMetaData.metadata);
+            return true;
+        });
         loadedAggregateVersions.put(aggregateDescriptor.toString(), lastVersion);
         return aggregate;
     }

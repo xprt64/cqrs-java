@@ -20,7 +20,9 @@ public class CommandApplier
             handle.setAccessible(true);
             handle.invoke(aggregate, command);
             return aggregate.endCommand();
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        } catch (InvocationTargetException e) {
+            throw new AggregateExecutionException(aggregate, e.getCause());
+        } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new AggregateExecutionException(aggregate, e);
         }
     }

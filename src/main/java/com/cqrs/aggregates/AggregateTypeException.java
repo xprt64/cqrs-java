@@ -1,10 +1,10 @@
 package com.cqrs.aggregates;
 
-public class AggregateException extends Exception {
+public class AggregateTypeException extends Exception {
 
     public final AggregateDescriptor aggregateDescriptor;
 
-    public AggregateException(AggregateDescriptor aggregateDescriptor, Throwable cause)
+    public AggregateTypeException(AggregateDescriptor aggregateDescriptor, Throwable cause)
     {
         super(cause);
         this.aggregateDescriptor = aggregateDescriptor;

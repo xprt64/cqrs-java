@@ -10,7 +10,7 @@ import java.util.List;
 public interface AggregateRepository {
 
     Aggregate loadAggregate(AggregateDescriptor aggregateDescriptor)
-        throws AggregateException, AggregateExecutionException;
+        throws AggregateTypeException, AggregateExecutionException, StorageException;
 
     /**
      * @return List of events decorated with eventId and version

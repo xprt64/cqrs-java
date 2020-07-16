@@ -1,6 +1,6 @@
 package com.cqrs.testing.exceptions;
 
-public class TooManyEventsFired extends Exception
+public class TooManyEventsFired extends AssertionError
 {
     public TooManyEventsFired(String message)
     {

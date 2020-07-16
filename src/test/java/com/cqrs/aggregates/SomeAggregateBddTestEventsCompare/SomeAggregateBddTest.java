@@ -27,7 +27,7 @@ public class SomeAggregateBddTest {
     }
 
     @Test
-    public void testEventsAreCorrectlyCompared() throws Exception {
+    public void testEventsAreCorrectlyCompared() {
 
         helper.onAggregate(new Aggregate1())
             .when(new Command1("123", Arrays.asList("a", "b")))
