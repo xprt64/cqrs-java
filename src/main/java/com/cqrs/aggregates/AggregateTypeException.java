@@ -1,6 +1,6 @@
 package com.cqrs.aggregates;
 
-public class AggregateTypeException extends Exception {
+public class AggregateTypeException extends RuntimeException {
 
     public final AggregateDescriptor aggregateDescriptor;
 

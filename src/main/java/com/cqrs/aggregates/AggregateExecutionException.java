@@ -2,7 +2,7 @@ package com.cqrs.aggregates;
 
 import com.cqrs.base.Aggregate;
 
-public class AggregateExecutionException extends Exception
+public class AggregateExecutionException extends RuntimeException
 {
 
     public final Aggregate aggregate;

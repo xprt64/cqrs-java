@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SomeAggregateBddTest
 {
     @Test
-    public void testEventsAreCorrectlyEmitedAndApplied()
+    public void testEventsAreCorrectlyEmittedAndApplied()
     {
         Aggregate1 sut = new Aggregate1();
 

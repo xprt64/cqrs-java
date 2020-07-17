@@ -3,7 +3,7 @@ package com.cqrs.commands;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CommandRejectedByValidators extends Exception {
+public class CommandRejectedByValidators extends RuntimeException {
     private final List<Throwable> errors;
 
     public CommandRejectedByValidators(List<Throwable> errors)

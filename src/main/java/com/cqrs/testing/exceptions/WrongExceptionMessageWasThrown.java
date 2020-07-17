@@ -1,6 +1,6 @@
 package com.cqrs.testing.exceptions;
 
-public class WrongExceptionMessageWasThrown extends Exception
+public class WrongExceptionMessageWasThrown extends AssertionError
 {
     public WrongExceptionMessageWasThrown(String message)
     {

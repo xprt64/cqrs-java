@@ -2,7 +2,7 @@ package com.cqrs.questions.exceptions;
 
 import com.cqrs.annotations.HandlersMap.Handler;
 
-public class HandlerException extends Exception {
+public class HandlerException extends RuntimeException {
     public final Handler handler;
 
     public HandlerException(String message, Handler handler, Throwable cause) {

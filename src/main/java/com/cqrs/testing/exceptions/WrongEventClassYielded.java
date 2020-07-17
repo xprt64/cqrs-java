@@ -1,6 +1,6 @@
 package com.cqrs.testing.exceptions;
 
-public class WrongEventClassYielded extends Exception
+public class WrongEventClassYielded extends AssertionError
 {
     public WrongEventClassYielded(String message)
     {

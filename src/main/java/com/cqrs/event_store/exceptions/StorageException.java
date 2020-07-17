@@ -1,6 +1,6 @@
 package com.cqrs.event_store.exceptions;
 
-public class StorageException extends Exception {
+public class StorageException extends RuntimeException {
 
     public StorageException(String message) {
         super(message);

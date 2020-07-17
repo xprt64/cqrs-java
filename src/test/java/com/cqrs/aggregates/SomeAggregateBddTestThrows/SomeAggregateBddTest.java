@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SomeAggregateBddTest {
     @Test
-    public void testThrowsExpectedException() throws Exception {
+    public void testThrowsExpectedException()  {
         Aggregate1 sut = new Aggregate1();
 
         BddAggregateTestHelper helper = new BddAggregateTestHelper(commandClass -> new CommandHandlerDescriptor(Aggregate1.class.getCanonicalName(), "handle"));

@@ -32,6 +32,7 @@ public class EventApplierOnAggregate
         } catch (InvocationTargetException | IllegalAccessException e) {
             //what do we do when there is a problem with the call?
             //@todo
+            throw new AggregateExecutionException(aggregate, e);
         }
     }
 }
