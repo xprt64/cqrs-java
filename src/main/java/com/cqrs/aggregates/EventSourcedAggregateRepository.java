@@ -27,7 +27,7 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
         throws AggregateTypeException {
         String aggregateClass = aggregateDescriptor.aggregateClass;
         try {
-            Class<?> clazz = Class.forName(aggregateClass);
+            Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(aggregateClass);
             Constructor<?> ctor = clazz.getDeclaredConstructor();
             ctor.setAccessible(true);
             return (Aggregate) ctor.newInstance();
