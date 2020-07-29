@@ -1,11 +1,11 @@
 package com.cqrs.questions.exceptions;
 
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 
 public class HandlerException extends RuntimeException {
-    public final Handler handler;
+    public final MessageHandler handler;
 
-    public HandlerException(String message, Handler handler, Throwable cause) {
+    public HandlerException(String message, MessageHandler handler, Throwable cause) {
         super(message, cause);
         this.handler = handler;
     }

@@ -1,9 +1,8 @@
 package com.cqrs.annotations.processors.CommandValidators.ok1;
 
-import com.cqrs.annotations.*;
+import com.cqrs.annotations.CommandValidator;
+import com.cqrs.annotations.CommandValidatorProcessor;
 import com.cqrs.base.Command;
-import com.cqrs.base.Event;
-import com.cqrs.events.MetaData;
 import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.Test;
 

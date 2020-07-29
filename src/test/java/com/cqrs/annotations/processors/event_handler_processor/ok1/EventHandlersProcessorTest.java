@@ -1,9 +1,9 @@
 package com.cqrs.annotations.processors.event_handler_processor.ok1;
 
-import com.cqrs.base.Event;
 import com.cqrs.annotations.CommandHandler;
 import com.cqrs.annotations.EventHandler;
 import com.cqrs.annotations.EventHandlersProcessor;
+import com.cqrs.base.Event;
 import com.cqrs.events.MetaData;
 import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.Test;

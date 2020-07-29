@@ -1,9 +1,9 @@
 package com.cqrs.aggregates.SomeAggregateBddTestTwoEvents;
 
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.base.Aggregate;
 import com.cqrs.base.Command;
 import com.cqrs.base.Event;
-import com.cqrs.commands.CommandHandlerDescriptor;
 import com.cqrs.testing.BddAggregateTestHelper;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +16,7 @@ public class SomeAggregateBddTestTwoEvents
     {
         Aggregate1 sut = new Aggregate1();
 
-        BddAggregateTestHelper helper = new BddAggregateTestHelper(commandClass -> new CommandHandlerDescriptor(Aggregate1.class.getCanonicalName(), "handle"));
+        BddAggregateTestHelper helper = new BddAggregateTestHelper(commandClass -> new MessageHandler(Aggregate1.class.getCanonicalName(), "handle"));
 
         helper.onAggregate(sut)
               .when(new Command1(new String("123")))

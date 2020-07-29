@@ -1,19 +1,20 @@
 package com.cqrs.aggregates.SomeAggregateBddTestShouldThrow.SomeAggregateBddTestThrows;
 
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.base.Aggregate;
 import com.cqrs.base.Command;
-import com.cqrs.commands.CommandHandlerDescriptor;
 import com.cqrs.testing.BddAggregateTestHelper;
 import com.cqrs.testing.exceptions.NoExceptionThrown;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class SomeAggregateBddTest {
     @Test
     public void testThrowsExpectedException() {
         Aggregate1 sut = new Aggregate1();
 
-        BddAggregateTestHelper helper = new BddAggregateTestHelper(commandClass -> new CommandHandlerDescriptor(Aggregate1.class.getCanonicalName(), "handle"));
+        BddAggregateTestHelper helper = new BddAggregateTestHelper(commandClass -> new MessageHandler(Aggregate1.class.getCanonicalName(), "handle"));
 
         try{
             helper.onAggregate(sut)

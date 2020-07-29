@@ -2,7 +2,7 @@ package com.cqrs.events;
 
 import com.cqrs.annotations.HandlersMap;
 import com.cqrs.base.Event;
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.infrastructure.AbstractFactory;
 
 import java.lang.reflect.InvocationTargetException;
@@ -30,7 +30,7 @@ public class EventSubscriberByMap implements EventSubscriber {
 
     @Override
     public List<BiConsumer<Event, MetaData>> getListenersForEvent(Event event) {
-        final List<Handler> handlersForThisEvent = map.getMap(event.getClass()).getOrDefault(event.getClass().getCanonicalName(), new LinkedList<>());
+        final List<MessageHandler> handlersForThisEvent = map.getMap().getOrDefault(event.getClass().getCanonicalName(), new LinkedList<>());
         return handlersForThisEvent.stream()
             .map(listenerDescriptor -> (BiConsumer<Event, MetaData>) (event1, metaData) -> {
                 Object listener = null;

@@ -1,8 +1,8 @@
 package com.cqrs.annotations.processors.command_handler_processor.error4;
 
-import com.cqrs.base.Command;
 import com.cqrs.annotations.CommandHandler;
 import com.cqrs.annotations.CommandHandlersProcessor;
+import com.cqrs.base.Command;
 import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.Test;
 

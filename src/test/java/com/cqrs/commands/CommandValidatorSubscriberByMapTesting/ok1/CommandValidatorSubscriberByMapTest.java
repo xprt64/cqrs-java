@@ -1,10 +1,10 @@
 package com.cqrs.commands.CommandValidatorSubscriberByMapTesting.ok1;
 
 import com.cqrs.annotations.HandlersMap;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.base.Command;
 import com.cqrs.commands.CommandValidatorSubscriberByMap;
 import com.cqrs.commands.CommandWithMetadata;
-import com.cqrs.infrastructure.AbstractFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CommandValidatorSubscriberByMapTest {
 
@@ -28,24 +28,24 @@ class CommandValidatorSubscriberByMapTest {
             },
             new HandlersMap() {
                 @Override
-                public HashMap<String, List<Handler>> getMap(Class<?> anyClazzFromResourcePackage) {
-                    HashMap<String, List<Handler>> result = new HashMap<>();
+                public HashMap<String, List<MessageHandler>> getMap() {
+                    HashMap<String, List<MessageHandler>> result = new HashMap<>();
                     result.put(
                         MyCommand1.class.getCanonicalName(),
                         Collections.singletonList(
-                            new Handler(MyValidator.class.getCanonicalName(), "validate1")
+                            new MessageHandler(MyValidator.class.getCanonicalName(), "validate1")
                         )
                     );
                     result.put(
                         MyCommand2.class.getCanonicalName(),
                         Collections.singletonList(
-                            new Handler(MyValidator.class.getCanonicalName(), "validate2")
+                            new MessageHandler(MyValidator.class.getCanonicalName(), "validate2")
                         )
                     );
                     result.put(
                         MyCommand3.class.getCanonicalName(),
                         Collections.singletonList(
-                            new Handler(MyValidator.class.getCanonicalName(), "validate3")
+                            new MessageHandler(MyValidator.class.getCanonicalName(), "validate3")
                         )
                     );
                     return result;

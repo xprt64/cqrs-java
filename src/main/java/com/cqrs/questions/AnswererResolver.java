@@ -1,7 +1,7 @@
 package com.cqrs.questions;
 
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 
 public interface AnswererResolver {
-    Handler findAnswerer(Object question);
+    MessageHandler findAnswerer(Object question);
 }

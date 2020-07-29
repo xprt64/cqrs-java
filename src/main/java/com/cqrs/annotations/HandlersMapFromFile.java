@@ -1,6 +1,5 @@
 package com.cqrs.annotations;
 
-import com.cqrs.annotations.HandlersMap;
 import com.cqrs.util.ResourceReader;
 
 import java.util.HashMap;
@@ -11,31 +10,36 @@ abstract public class HandlersMapFromFile implements HandlersMap {
 
     private final String DIRECTORY_PATH;
 
-    private ResourceReader resourceReader = new ResourceReader();
+    private ResourceReader resourceReader;
+    private HashMap<String, List<MessageHandler>> cache;
 
-    public HandlersMapFromFile(String DIRECTORY_PATH) {
+    public HandlersMapFromFile(ResourceReader resourceReader, String DIRECTORY_PATH) {
+        this.resourceReader = resourceReader;
         this.DIRECTORY_PATH = DIRECTORY_PATH;
     }
 
     @Override
-    public HashMap<String, List<Handler>> getMap(Class<?> anyClazzFromResourcePackage) {
-        HashMap<String, List<Handler>> handlersPerMessage = new HashMap<>();
+    public HashMap<String, List<MessageHandler>> getMap() {
+        if(null == cache){
+            cache = getMapNonCached();
+        }
+        return cache;
+    }
+
+    private HashMap<String, List<MessageHandler>> getMapNonCached() {
+        HashMap<String, List<MessageHandler>> handlersPerMessage = new HashMap<>();
         resourceReader.forEachLineInDirectory(
-            anyClazzFromResourcePackage,
             DIRECTORY_PATH,
             (aggregateName, line) -> {
                 String[] commandAndMethod = line.split(",", 2);
                 final String command = commandAndMethod[0];
                 final String method = commandAndMethod[1];
-                List<Handler> existing = handlersPerMessage.getOrDefault(command, new LinkedList<>());
-                existing.add(new Handler(aggregateName, method));
+                List<MessageHandler> existing = handlersPerMessage.getOrDefault(command, new LinkedList<>());
+                existing.add(new MessageHandler(aggregateName, method));
                 handlersPerMessage.put(command, existing);
             }
         );
         return handlersPerMessage;
     }
 
-    public void setResourceReader(ResourceReader resourceReader) {
-        this.resourceReader = resourceReader;
-    }
 }

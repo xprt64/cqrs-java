@@ -1,9 +1,9 @@
 package com.cqrs.questions;
 
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 
 import java.util.List;
 
 public interface SubscriberResolver {
-    List<Handler> findSubscribers(Object question);
+    List<MessageHandler> findSubscribers(Object question);
 }

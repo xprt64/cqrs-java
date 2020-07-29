@@ -1,7 +1,7 @@
 package com.cqrs.commands;
 
 import com.cqrs.annotations.HandlersMap;
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.base.Command;
 import com.cqrs.infrastructure.AbstractFactory;
 
@@ -29,8 +29,8 @@ public class CommandValidatorSubscriberByMap implements CommandValidatorSubscrib
 
     @Override
     public List<Function<CommandWithMetadata, List<Throwable>>> getValidatorsForCommand(Command command) {
-        final List<Handler> validators =
-            map.getMap(command.getClass()).getOrDefault(command.getClass().getCanonicalName(), new LinkedList<>());
+        final List<MessageHandler> validators =
+            map.getMap().getOrDefault(command.getClass().getCanonicalName(), new LinkedList<>());
         return validators.stream()
             .map(listenerDescriptor -> (Function<CommandWithMetadata, List<Throwable>>) (commandWithMetadata) -> {
                 Object listener = null;

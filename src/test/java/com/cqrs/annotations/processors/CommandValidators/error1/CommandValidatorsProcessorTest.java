@@ -9,11 +9,9 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.testing.compile.JavaSourceSubjectFactory.javaSource;
-import static javax.tools.StandardLocation.SOURCE_OUTPUT;
 
 class CommandValidatorsProcessorTest {
 

@@ -2,11 +2,11 @@ package com.cqrs.commands.DefaultCommandDispatcherTest.dispatchCommand;
 
 import com.cqrs.aggregates.AggregateDescriptor;
 import com.cqrs.aggregates.AggregateRepository;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.base.Aggregate;
 import com.cqrs.base.Command;
 import com.cqrs.base.Event;
 import com.cqrs.commands.CommandApplier;
-import com.cqrs.commands.CommandHandlerDescriptor;
 import com.cqrs.commands.DefaultCommandDispatcher;
 import com.cqrs.commands.MetadataWrapper;
 import com.cqrs.events.EventWithMetaData;
@@ -27,7 +27,7 @@ class DefaultCommandDispatcherTest
         throws Exception
     {
         DefaultCommandDispatcher sut = new DefaultCommandDispatcher(
-            commandClass -> new CommandHandlerDescriptor(Aggregate1.class.getCanonicalName(), "handle"),
+            commandClass -> new MessageHandler(Aggregate1.class.getCanonicalName(), "handle"),
             new CommandApplier(),
             getAggregateRepository(),
             new MetadataFactory()

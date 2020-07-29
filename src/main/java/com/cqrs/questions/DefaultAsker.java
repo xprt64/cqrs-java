@@ -1,8 +1,7 @@
 package com.cqrs.questions;
 
-import com.cqrs.annotations.HandlersMap;
 import com.cqrs.infrastructure.AbstractFactory;
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.questions.exceptions.HandlerException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -38,7 +37,7 @@ public class DefaultAsker implements Asker {
 
     @Override
     public <Q> Q askAndReturn(Q question) throws HandlerException {
-        Handler answererDescriptor = answererResolver.findAnswerer(question);
+        MessageHandler answererDescriptor = answererResolver.findAnswerer(question);
         if (null == answererDescriptor) {
             throw new HandlerException("No answerer for " + question.getClass().getCanonicalName());
         }
@@ -66,7 +65,7 @@ public class DefaultAsker implements Asker {
     @Override
     public <Q> void askAndNotifyAsker(Q question, Object asker) throws HandlerException {
         Q answeredQuestion = askAndReturn(question);
-        Handler subscriberDescriptor = findSubscriberMethod(question, asker);
+        MessageHandler subscriberDescriptor = findSubscriberMethod(question, asker);
         try {
             Class<?> clazz = Class.forName(subscriberDescriptor.handlerClass);
             Method method = clazz.getDeclaredMethod(subscriberDescriptor.methodName, question.getClass());
@@ -79,8 +78,8 @@ public class DefaultAsker implements Asker {
         }
     }
 
-    private HandlersMap.Handler findSubscriberMethod(Object question, Object subscriber) throws HandlerException {
-        Optional<Handler> first = subscriberResolver.findSubscribers(question)
+    private MessageHandler findSubscriberMethod(Object question, Object subscriber) throws HandlerException {
+        Optional<MessageHandler> first = subscriberResolver.findSubscribers(question)
             .stream()
             .filter(handler -> handler.handlerClass.equals(subscriber.getClass().getCanonicalName()))
             .findFirst();

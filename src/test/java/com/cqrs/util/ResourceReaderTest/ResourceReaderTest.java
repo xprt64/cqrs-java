@@ -3,18 +3,16 @@ package com.cqrs.util.ResourceReaderTest;
 import com.cqrs.util.ResourceReader;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ResourceReaderTest {
 
     @Test
     void forEachLineInDirectory() {
-        ResourceReader sut = new ResourceReader();
+        ResourceReader sut = new ResourceReader(ResourceReaderTest.class);
         StringBuilder stringBuilder = new StringBuilder();
 
-        sut.forEachLineInDirectory(this.getClass(), "ResourceReaderTestDir", (file, line) -> {
+        sut.forEachLineInDirectory("ResourceReaderTestDir", (file, line) -> {
             stringBuilder.append(file).append(":").append(line).append("\n");
         });
 

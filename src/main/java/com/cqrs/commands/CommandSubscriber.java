@@ -1,5 +1,7 @@
 package com.cqrs.commands;
 
+import com.cqrs.annotations.MessageHandler;
+
 public interface CommandSubscriber {
-    CommandHandlerDescriptor getAggregateForCommand(Class<?> commandClass) throws CommandHandlerNotFound;
+    MessageHandler  getAggregateForCommand(Class<?> commandClass) throws CommandHandlerNotFound;
 }

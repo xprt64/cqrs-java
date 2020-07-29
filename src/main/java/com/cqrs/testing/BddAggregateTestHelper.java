@@ -4,11 +4,11 @@ import com.cqrs.aggregates.AggregateCommandHandlingException;
 import com.cqrs.aggregates.AggregateEventApplyException;
 import com.cqrs.aggregates.AggregateExecutionException;
 import com.cqrs.aggregates.EventApplierOnAggregate;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.base.Aggregate;
 import com.cqrs.base.Command;
 import com.cqrs.base.Event;
 import com.cqrs.commands.CommandApplier;
-import com.cqrs.commands.CommandHandlerDescriptor;
 import com.cqrs.commands.CommandHandlerNotFound;
 import com.cqrs.commands.CommandSubscriber;
 import com.cqrs.events.EventWithMetaData;
@@ -133,7 +133,7 @@ public class BddAggregateTestHelper {
 
     private List<Event> executeCommand(Command $command
     ) throws CommandHandlerNotFound, AggregateExecutionException {
-        CommandHandlerDescriptor handler = commandSubscriber.getAggregateForCommand(command.getClass());
+        MessageHandler  handler = commandSubscriber.getAggregateForCommand(command.getClass());
 
         return commandApplier.applyCommand(aggregate, $command, handler.methodName);
     }

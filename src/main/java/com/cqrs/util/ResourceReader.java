@@ -14,6 +14,12 @@ import java.util.stream.Stream;
 
 public class ResourceReader {
 
+    private final Class<?> anyClassFromResourcePackage;
+
+    public ResourceReader(Class<?> anyClassFromResourcePackage) {
+        this.anyClassFromResourcePackage = anyClassFromResourcePackage;
+    }
+
     private static InputStream getResourceAsStream(String resource) {
         final InputStream in = getContextClassLoader().getResourceAsStream(resource);
         return in == null ? ResourceReader.class.getResourceAsStream(resource) : in;
@@ -28,13 +34,12 @@ public class ResourceReader {
     }
 
     public void forEachLineInDirectory(
-        Class<?> clazz,
         String dirPath,
         LineConsumer consumer,
         ErrorReporter errorReporter
     ) {
         try {
-            listResourceFilesInDir(clazz, dirPath).forEach(file -> {
+            listResourceFilesInDir(dirPath).forEach(file -> {
                 String resourcePath = concatenatePath(dirPath, file);
                 new BufferedReader(new InputStreamReader(getResourceAsStream(resourcePath)))
                     .lines().forEach(line -> consumer.consumeLineInFile(file, line));
@@ -47,24 +52,24 @@ public class ResourceReader {
         }
     }
 
-    public void forEachLineInDirectory(Class<?> clazz, String dirPath, LineConsumer consumer) {
-        forEachLineInDirectory(clazz, dirPath, consumer, null);
+    public void forEachLineInDirectory(String dirPath, LineConsumer consumer) {
+        forEachLineInDirectory(dirPath, consumer, null);
     }
 
-    private Stream<String> listResourceFilesInDir(Class<?> clazz, String directoryPath) throws IOException {
+    private Stream<String> listResourceFilesInDir(String directoryPath) throws IOException {
         try {
-            return Arrays.stream(getResourceListing(clazz, directoryPath)).sorted();
+            return Arrays.stream(getResourceListing(directoryPath)).sorted();
         } catch (UnsupportedOperationException | URISyntaxException e) {
             throw new IOException(e.getMessage(), e);
         }
     }
 
-    String[] getResourceListing(Class<?> clazz, String path) throws URISyntaxException, IOException {
+    String[] getResourceListing(String path) throws URISyntaxException, IOException {
         if (!path.endsWith("/")) {
             path = path + "/";
         }
 
-        URL dirURL = clazz.getClassLoader().getResource(path);
+        URL dirURL = anyClassFromResourcePackage.getClassLoader().getResource(path);
 
         if (dirURL != null && dirURL.getProtocol().equals("file")) {
             /* A file path: easy enough */
@@ -74,10 +79,11 @@ public class ResourceReader {
         if (dirURL == null) {
             /*
              * In case of a jar file, we can't actually find a directory.
-             * Have to assume the same jar as clazz.
+             * Have to assume the same jar as anyClassFromResourcePackage.
              */
-            String me = clazz.getName().replace(".", "/") + ".class";
-            dirURL = clazz.getClassLoader().getResource(me);
+            String me = anyClassFromResourcePackage.getName().replace(".", "/") + ".class";
+            System.out.println(me);
+            dirURL = anyClassFromResourcePackage.getClassLoader().getResource(me);
         }
 
         if (dirURL.getProtocol().equals("jar")) {

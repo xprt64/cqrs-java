@@ -1,6 +1,6 @@
 package com.cqrs.questions;
 
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.infrastructure.AbstractFactory;
 
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +44,7 @@ public class DefaultQuestionPublisher implements QuestionPublisher {
         subscriberResolver.findSubscribers(answeredQuestion).forEach(handler -> callHandler(handler, answeredQuestion));
     }
 
-    private void callHandler(Handler handler, Object question) {
+    private void callHandler(MessageHandler handler, Object question) {
         Object listener = null;
         try {
             Class<?> clazz = loadClass(handler.handlerClass);
@@ -59,7 +59,7 @@ public class DefaultQuestionPublisher implements QuestionPublisher {
         }
     }
 
-    private void reportError(Object listener, Handler handler, Throwable e) {
+    private void reportError(Object listener, MessageHandler handler, Throwable e) {
         if (null == errorReporter) {
             return;
         }

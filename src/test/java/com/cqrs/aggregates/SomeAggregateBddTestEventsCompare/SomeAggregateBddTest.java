@@ -1,9 +1,9 @@
 package com.cqrs.aggregates.SomeAggregateBddTestEventsCompare;
 
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.base.Aggregate;
 import com.cqrs.base.Command;
 import com.cqrs.base.Event;
-import com.cqrs.commands.CommandHandlerDescriptor;
 import com.cqrs.testing.BddAggregateTestHelper;
 import com.cqrs.testing.exceptions.ExpectedEventNotYielded;
 import com.cqrs.testing.exceptions.TooManyEventsFired;
@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SomeAggregateBddTest {
@@ -23,7 +22,7 @@ public class SomeAggregateBddTest {
 
     @BeforeEach
     void setUp() {
-        helper = new BddAggregateTestHelper(commandClass -> new CommandHandlerDescriptor(Aggregate1.class.getCanonicalName(), "handle"));
+        helper = new BddAggregateTestHelper(commandClass -> new MessageHandler(Aggregate1.class.getCanonicalName(), "handle"));
     }
 
     @Test

@@ -1,6 +1,6 @@
 package com.cqrs.questions.DefaultQuestionPublisherTests.ok1;
 
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.questions.DefaultQuestionPublisher;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ class DefaultQuestionPublisherTest {
 
         DefaultQuestionPublisher sut = new DefaultQuestionPublisher(
                 question -> Collections.singletonList(
-                        new Handler(MySubscriber.class.getCanonicalName(), "whenAnswered")
+                        new MessageHandler(MySubscriber.class.getCanonicalName(), "whenAnswered")
                 ),
                 clazz -> {
                     try {

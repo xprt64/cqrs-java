@@ -1,52 +1,23 @@
 package com.cqrs.commands;
 
-import com.cqrs.annotations.CommandHandlersProcessor;
-import com.cqrs.util.ResourceReader;
-
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.HashMap;
+import com.cqrs.annotations.HandlersMap;
+import com.cqrs.annotations.MessageHandler;
 
 public class CommandSubscriberByMap implements CommandSubscriber {
 
-    private final String DIRECTORY_PATH;
+    private final HandlersMap handlersMap;
 
-    private ResourceReader resourceReader = new ResourceReader();
-
-    public CommandSubscriberByMap() {
-        DIRECTORY_PATH = CommandHandlersProcessor.AGGREGATE_COMMAND_HANDLERS_DIRECTORY;
-    }
-
-    public CommandSubscriberByMap(String DIRECTORY_PATH) {
-        this.DIRECTORY_PATH = DIRECTORY_PATH;
+    public CommandSubscriberByMap(HandlersMap handlersMap) {
+        this.handlersMap = handlersMap;
     }
 
     @Override
-    public CommandHandlerDescriptor getAggregateForCommand(Class<?> commandClass
+    public MessageHandler  getAggregateForCommand(Class<?> commandClass
     ) throws CommandHandlerNotFound {
-        CommandHandlerDescriptor entry = getMap(commandClass).get(commandClass.getCanonicalName());
+        MessageHandler  entry = handlersMap.getMap().get(commandClass.getCanonicalName()).get(0);
         if (entry == null) {
             throw new CommandHandlerNotFound(commandClass.getCanonicalName());
         }
         return entry;
-    }
-
-    private HashMap<String, CommandHandlerDescriptor> getMap(Class<?> clazz) {
-        HashMap<String, CommandHandlerDescriptor> handlerPerCommand = new HashMap<>();
-        resourceReader.forEachLineInDirectory(
-            clazz,
-            DIRECTORY_PATH,
-            (aggregateName, line) -> {
-                String[] commandAndMethod = line.split(",", 2);
-                final String command = commandAndMethod[0];
-                final String method = commandAndMethod[1];
-                handlerPerCommand.put(command, new CommandHandlerDescriptor(aggregateName, method));
-            }
-        );
-        return handlerPerCommand;
-    }
-
-    public void setResourceReader(ResourceReader resourceReader) {
-        this.resourceReader = resourceReader;
     }
 }

@@ -1,6 +1,6 @@
 package com.cqrs.questions.DefaultAskerTests;
 
-import com.cqrs.annotations.HandlersMap.Handler;
+import com.cqrs.annotations.MessageHandler;
 import com.cqrs.infrastructure.AbstractFactory;
 import com.cqrs.questions.DefaultAsker;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ class DefaultAskerTest {
         assertDoesNotThrow(() -> {
             DefaultAsker sut = new DefaultAsker(
                     new MyAbstractFactory(),
-                    question -> new Handler(MyAnswerer.class.getCanonicalName(), "answer1"),
+                    question -> new MessageHandler(MyAnswerer.class.getCanonicalName(), "answer1"),
                     question -> Collections.emptyList()
             );
 
@@ -36,11 +36,11 @@ class DefaultAskerTest {
         assertDoesNotThrow(() -> {
             DefaultAsker sut = new DefaultAsker(
                     new MyAbstractFactory(),
-                    question -> new Handler(MyAnswerer.class.getCanonicalName(), "answer1"),
+                    question -> new MessageHandler(MyAnswerer.class.getCanonicalName(), "answer1"),
                     question -> Arrays.asList(
-                            new Handler("someSubscribedAsker1", "whenAnswered1"),
-                            new Handler(MySubscribedAsker.class.getCanonicalName(), "whenAnswered"),
-                            new Handler("someSubscribedAsker2", "whenAnswered2")
+                            new MessageHandler("someSubscribedAsker1", "whenAnswered1"),
+                            new MessageHandler(MySubscribedAsker.class.getCanonicalName(), "whenAnswered"),
+                            new MessageHandler("someSubscribedAsker2", "whenAnswered2")
                     )
             );
 
