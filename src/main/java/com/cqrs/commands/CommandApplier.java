@@ -18,6 +18,10 @@ public class CommandApplier
     {
         aggregate.beginCommand();
         try {
+//            System.out.println("Loader for " + aggregate.getClass().getCanonicalName());
+//            System.out.println(aggregate.getClass().getClassLoader());
+//            System.out.println("Loader for " + command.getClass().getCanonicalName());
+//            System.out.println(command.getClass().getClassLoader());
             Method handle = aggregate.getClass().getDeclaredMethod(methodName, command.getClass());
             handle.setAccessible(true);
             handle.invoke(aggregate, command);
