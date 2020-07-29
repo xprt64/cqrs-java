@@ -1,11 +1,13 @@
 package com.cqrs.commands;
 
+import com.cqrs.aggregates.AggregateCommandHandlingException;
 import com.cqrs.aggregates.AggregateExecutionException;
 import com.cqrs.base.Aggregate;
 import com.cqrs.base.Command;
 import com.cqrs.base.Event;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 
 public class CommandApplier
@@ -21,9 +23,9 @@ public class CommandApplier
             handle.invoke(aggregate, command);
             return aggregate.endCommand();
         } catch (InvocationTargetException e) {
-            throw new AggregateExecutionException(aggregate, e.getCause());
+            throw new AggregateCommandHandlingException(aggregate, command, methodName, e.getCause());
         } catch (NoSuchMethodException | IllegalAccessException e) {
-            throw new AggregateExecutionException(aggregate, e);
+            throw new AggregateCommandHandlingException(aggregate, command, methodName, e);
         }
     }
 }

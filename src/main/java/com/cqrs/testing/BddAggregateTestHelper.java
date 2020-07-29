@@ -1,5 +1,7 @@
 package com.cqrs.testing;
 
+import com.cqrs.aggregates.AggregateCommandHandlingException;
+import com.cqrs.aggregates.AggregateEventApplyException;
 import com.cqrs.aggregates.AggregateExecutionException;
 import com.cqrs.aggregates.EventApplierOnAggregate;
 import com.cqrs.base.Aggregate;
@@ -113,7 +115,7 @@ public class BddAggregateTestHelper {
 
             executeCommand(command);
             throw new NoExceptionThrown("Aggregate was expected to throw " + expectedClass.getCanonicalName() + " but didn't");
-        } catch (AggregateExecutionException e) {
+        } catch (AggregateExecutionException| AggregateEventApplyException| AggregateCommandHandlingException e) {
             Throwable cause = e.getCause();
             if (cause instanceof InvocationTargetException) {
                 cause = cause.getCause();

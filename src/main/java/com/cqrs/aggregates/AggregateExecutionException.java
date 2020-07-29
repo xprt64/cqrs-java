@@ -16,7 +16,7 @@ public class AggregateExecutionException extends RuntimeException
     @Override
     public String toString()
     {
-        return "Aggregate " + aggregate.getClass().getCanonicalName() + " has problems: " + getCause()
-            .getClass().getCanonicalName() + ": " + getCause().getMessage();
+        return "Aggregate " + aggregate.getClass().getCanonicalName() + " threw " + getCause()
+            .getClass().getCanonicalName() + " (" + getCause().getMessage() + ")";
     }
 }
