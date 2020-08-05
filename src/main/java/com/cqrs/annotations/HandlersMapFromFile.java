@@ -30,13 +30,13 @@ abstract public class HandlersMapFromFile implements HandlersMap {
         HashMap<String, List<MessageHandler>> handlersPerMessage = new HashMap<>();
         resourceReader.forEachLineInDirectory(
             DIRECTORY_PATH,
-            (aggregateName, line) -> {
-                String[] commandAndMethod = line.split(",", 2);
-                final String command = commandAndMethod[0];
-                final String method = commandAndMethod[1];
-                List<MessageHandler> existing = handlersPerMessage.getOrDefault(command, new LinkedList<>());
-                existing.add(new MessageHandler(aggregateName, method));
-                handlersPerMessage.put(command, existing);
+            (listenerName, line) -> {
+                String[] messageClassAndAndMethod = line.split(",", 2);
+                final String messageClass = messageClassAndAndMethod[0];
+                final String methodName = messageClassAndAndMethod[1];
+                List<MessageHandler> existing = handlersPerMessage.getOrDefault(messageClass, new LinkedList<>());
+                existing.add(new MessageHandler(listenerName, methodName));
+                handlersPerMessage.put(messageClass, existing);
             }
         );
         return handlersPerMessage;

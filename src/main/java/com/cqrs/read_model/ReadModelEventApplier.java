@@ -37,13 +37,15 @@ public class ReadModelEventApplier {
     {
         try {
             Method method = readModel.getClass()
-                .getMethod(methodName, eventWithMetadata.event.getClass(),
+                .getDeclaredMethod(methodName, eventWithMetadata.event.getClass(),
                     eventWithMetadata.metadata.getClass());
+            method.setAccessible(true);
             method.invoke(readModel, eventWithMetadata.event, eventWithMetadata.metadata);
         } catch (NoSuchMethodException e) {
             try {
                 Method method = readModel.getClass()
-                    .getMethod(methodName, eventWithMetadata.event.getClass());
+                    .getDeclaredMethod(methodName, eventWithMetadata.event.getClass());
+                method.setAccessible(true);
                 method.invoke(readModel, eventWithMetadata.event);
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException noSuchMethodException) {
                 errorReporter.reportEventApplyError(

@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Stream;
@@ -52,6 +53,11 @@ public class ResourceReader {
         }
     }
 
+    public void readLinesFromFile(String filePath, Consumer<String> consumer){
+        new BufferedReader(new InputStreamReader(getResourceAsStream(filePath)))
+            .lines().forEach(consumer);
+    }
+
     public void forEachLineInDirectory(String dirPath, LineConsumer consumer) {
         forEachLineInDirectory(dirPath, consumer, null);
     }
@@ -82,7 +88,6 @@ public class ResourceReader {
              * Have to assume the same jar as anyClassFromResourcePackage.
              */
             String me = anyClassFromResourcePackage.getName().replace(".", "/") + ".class";
-            System.out.println(me);
             dirURL = anyClassFromResourcePackage.getClassLoader().getResource(me);
         }
 

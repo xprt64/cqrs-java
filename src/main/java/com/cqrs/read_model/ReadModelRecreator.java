@@ -4,7 +4,6 @@ import com.cqrs.base.EventStore;
 import com.cqrs.event_store.exceptions.StorageException;
 import com.cqrs.read_model.progress.TaskProgressCalculator;
 import com.cqrs.read_model.progress.TaskProgressReporter;
-import com.cqrs.reflection.ReadModelReflector;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -31,20 +30,20 @@ public class ReadModelRecreator {
     }
 
     public void recreateRead(ReadModel readModel) throws StorageException {
-        List<String> eventClasses = readModelReflector.getEventClassesFromReadModel(readModel.getClass());
+        List<String> eventClasses = readModelReflector.getEventClassesFromReadModel(readModel.getClass().getCanonicalName());
 
+        log("loading and applying events...");
         log(String.join(",", eventClasses));
-        log("loading events...");
 
-        log("applying events...");
+        TaskProgressCalculator taskProgress = null != taskProgressReporter
+            ? new TaskProgressCalculator(eventStore.countEventsByClassNames(eventClasses))
+            : null;
 
-        TaskProgressCalculator taskProgress =
-            null != taskProgressReporter ? new TaskProgressCalculator(eventStore.countEventsByClassNames(eventClasses)) : null;
 
         eventStore.loadEventsByClassNames(eventClasses, eventWithMetadata -> {
             readModelEventApplier.applyEventOnlyOnce(
                 readModel,
-                readModelReflector.getEventHandlerForEvent(eventWithMetadata.event.getClass()),
+                readModelReflector.getEventHandlerMethodNameForEvent(readModel.getClass().getCanonicalName(), eventWithMetadata.event.getClass().getCanonicalName()),
                 eventWithMetadata
             );
             reportProgress(taskProgress);
