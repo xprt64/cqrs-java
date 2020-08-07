@@ -5,6 +5,7 @@ import com.cqrs.aggregates.AggregateExecutionException;
 import com.cqrs.base.Command;
 import com.cqrs.commands.exceptions.TooManyCommandExecutionRetries;
 import com.cqrs.event_store.exceptions.StorageException;
+import com.cqrs.events.EventWithMetaData;
 
 import java.util.List;
 
@@ -19,12 +20,12 @@ public class CommandDispatcherWithValidator implements CommandDispatcher {
     }
 
     @Override
-    public void dispatchCommand(Command command, CommandMetaData metadata)
+    public List<EventWithMetaData> dispatchCommand(Command command, CommandMetaData metadata)
         throws TooManyCommandExecutionRetries, CommandRejectedByValidators, AggregateExecutionException, AggregateTypeException, CommandHandlerNotFound, StorageException {
         List<Throwable> errors = commandValidator.validateCommand(new CommandWithMetadata(command, metadata));
         if(!errors.isEmpty()){
             throw new CommandRejectedByValidators(errors);
         }
-        commandDispatcher.dispatchCommand(command, metadata);
+        return commandDispatcher.dispatchCommand(command, metadata);
     }
 }

@@ -60,13 +60,14 @@ public class DefaultCommandDispatcher implements CommandDispatcher {
     }
 
     @Override
-    public void dispatchCommand(Command command, CommandMetaData metadata)
+    public List<EventWithMetaData> dispatchCommand(Command command, CommandMetaData metadata)
         throws TooManyCommandExecutionRetries, AggregateExecutionException, AggregateTypeException, CommandHandlerNotFound, StorageException
     {
-        List<EventWithMetaData> sideEffects = dispatchCommandAndSaveAggregate(
+        List<EventWithMetaData> emittedEvents = dispatchCommandAndSaveAggregate(
             commandMetadataFactory.wrapCommandWithMetadata(command, metadata)
         );
-        sideEffectsDispatcher.dispatchSideEffects(sideEffects);
+        sideEffectsDispatcher.dispatchSideEffects(emittedEvents);
+        return emittedEvents;
     }
 
     private List<EventWithMetaData> dispatchCommandAndSaveAggregate(CommandWithMetadata command)

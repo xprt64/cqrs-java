@@ -5,12 +5,15 @@ import com.cqrs.aggregates.AggregateExecutionException;
 import com.cqrs.base.Command;
 import com.cqrs.commands.exceptions.TooManyCommandExecutionRetries;
 import com.cqrs.event_store.exceptions.StorageException;
+import com.cqrs.events.EventWithMetaData;
+
+import java.util.List;
 
 public interface CommandDispatcher {
-	void dispatchCommand(Command command, CommandMetaData metadata)
+	List<EventWithMetaData> dispatchCommand(Command command, CommandMetaData metadata)
 		throws TooManyCommandExecutionRetries, AggregateExecutionException, AggregateTypeException, CommandHandlerNotFound, CommandRejectedByValidators, StorageException;
-	default void dispatchCommand(Command command)
+	default List<EventWithMetaData> dispatchCommand(Command command)
 		throws TooManyCommandExecutionRetries, AggregateExecutionException, AggregateTypeException, CommandHandlerNotFound, CommandRejectedByValidators, StorageException {
-		dispatchCommand(command, null);
+		return dispatchCommand(command, null);
 	}
 }

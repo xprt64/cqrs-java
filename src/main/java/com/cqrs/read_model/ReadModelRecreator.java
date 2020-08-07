@@ -10,10 +10,11 @@ import java.util.function.Consumer;
 
 public class ReadModelRecreator {
     final private EventStore eventStore;
-    final private Consumer<String> logger;
-    final private TaskProgressReporter taskProgressReporter;
     final private ReadModelEventApplier readModelEventApplier;
     final private ReadModelReflector readModelReflector;
+
+    private TaskProgressReporter taskProgressReporter;
+    private Consumer<String> logger;
 
     public ReadModelRecreator(
         EventStore eventStore,
@@ -25,6 +26,16 @@ public class ReadModelRecreator {
         this.eventStore = eventStore;
         this.logger = logger;
         this.taskProgressReporter = taskProgressReporter;
+        this.readModelEventApplier = readModelEventApplier;
+        this.readModelReflector = readModelReflector;
+    }
+
+    public ReadModelRecreator(
+        EventStore eventStore,
+        ReadModelEventApplier readModelEventApplier,
+        ReadModelReflector readModelReflector
+    ) {
+        this.eventStore = eventStore;
         this.readModelEventApplier = readModelEventApplier;
         this.readModelReflector = readModelReflector;
     }
@@ -68,5 +79,15 @@ public class ReadModelRecreator {
         if (logger != null) {
             logger.accept(message);
         }
+    }
+
+    public ReadModelRecreator setTaskProgressReporter(TaskProgressReporter taskProgressReporter) {
+        this.taskProgressReporter = taskProgressReporter;
+        return this;
+    }
+
+    public ReadModelRecreator setLogger(Consumer<String> logger) {
+        this.logger = logger;
+        return this;
     }
 }
