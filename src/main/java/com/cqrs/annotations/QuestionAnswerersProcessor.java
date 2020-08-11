@@ -137,7 +137,7 @@ public class QuestionAnswerersProcessor extends AbstractProcessor {
                 TypeMirror firstParam = type.getParameterTypes().get(0);
                 TypeElement firstParamElement =
                         processingEnv.getElementUtils().getTypeElement(firstParam.toString());
-                queryClassName = firstParamElement.getQualifiedName().toString();
+                queryClassName = firstParam.toString();
 
                 if (firstParam.getKind().isPrimitive() ||
                         !typeExtendsSuperClass(firstParamElement, Object.class.getCanonicalName())) {
