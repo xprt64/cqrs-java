@@ -1,0 +1,4 @@
+event1,handler_A,2
+event1,handler_B
+event1,handler_C,3
+event1,handler_D,1

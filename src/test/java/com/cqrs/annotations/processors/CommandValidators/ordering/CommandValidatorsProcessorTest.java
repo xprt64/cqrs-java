@@ -1,4 +1,4 @@
-package com.cqrs.annotations.processors.CommandValidators.ok1;
+package com.cqrs.annotations.processors.CommandValidators.ordering;
 
 import com.cqrs.annotations.CommandValidator;
 import com.cqrs.annotations.CommandValidatorProcessor;
@@ -33,9 +33,12 @@ class CommandValidatorsProcessorTest {
             )
             .withStringContents(
                 Charset.defaultCharset(),
-                "com.cqrs.annotations.processors.CommandValidators.ok1.CommandValidatorsProcessorTest.MyCommand1,validate1,0\n" +
-                "com.cqrs.annotations.processors.CommandValidators.ok1.CommandValidatorsProcessorTest.MyCommand2,validate2,0\n" +
-                "com.cqrs.annotations.processors.CommandValidators.ok1.CommandValidatorsProcessorTest.MyCommand3,validate3,0"
+                "" +
+                "com.cqrs.annotations.processors.CommandValidators.ordering.MyCommand1,validate1,1\n" +
+                "com.cqrs.annotations.processors.CommandValidators.ordering.MyCommand2,validate2,0\n" +
+                "com.cqrs.annotations.processors.CommandValidators.ordering.MyCommand3,validate3,3\n" +
+                "com.cqrs.annotations.processors.CommandValidators.ordering.MyCommand3,validate5,5\n" +
+                "com.cqrs.annotations.processors.CommandValidators.ordering.MyCommand3,validate7,7"
             )
         ;
     }
@@ -45,46 +48,57 @@ class CommandValidatorsProcessorTest {
         return source.toURI().toURL();
     }
 
-    class MyCommandValidator {
 
-        @CommandValidator
-        public List<Throwable> validate1(MyCommand1 command) {
-            return new ArrayList<>();
-        }
+}
+class MyCommandValidator {
 
-        @CommandValidator
-        public void validate2(MyCommand2 command) throws Exception {
-
-        }
-
-        @CommandValidator
-        public Throwable validate3(MyCommand3 command) {
-            return new Exception("");
-        }
+    @CommandValidator(order = 1)
+    public void validate1(MyCommand1 command) throws Exception  {
 
     }
 
-    class MyCommand1 implements Command{
+    @CommandValidator
+    public void validate2(MyCommand2 command) throws Exception {
 
-        @Override
-        public String getAggregateId() {
-            return null;
-        }
     }
 
-    class MyCommand2 implements Command{
+    @CommandValidator(order=3)
+    public void validate3(MyCommand3 command) throws Exception  {
 
-        @Override
-        public String getAggregateId() {
-            return null;
-        }
     }
 
-    class MyCommand3 implements Command{
+    @CommandValidator(order=7)
+    public void validate7(MyCommand3 command) throws Exception  {
 
-        @Override
-        public String getAggregateId() {
-            return null;
-        }
+    }
+
+    @CommandValidator(order=5)
+    public void validate5(MyCommand3 command) throws Exception  {
+
+    }
+
+}
+
+class MyCommand1 implements Command{
+
+    @Override
+    public String getAggregateId() {
+        return null;
+    }
+}
+
+class MyCommand2 implements Command{
+
+    @Override
+    public String getAggregateId() {
+        return null;
+    }
+}
+
+class MyCommand3 implements Command{
+
+    @Override
+    public String getAggregateId() {
+        return null;
     }
 }

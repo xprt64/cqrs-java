@@ -26,7 +26,7 @@ public class FromHandlersFileReadModelsReflector implements ReadModelReflector {
         resourceReader.readLinesFromFile(
             concatenatePath(handlersDirectory, readModelClass),
             line -> {
-                String[] messageClassAndAndMethod = line.split(",", 2);
+                String[] messageClassAndAndMethod = line.split(",", 3);
                 final String messageClass = messageClassAndAndMethod[0];
                 events.add(messageClass);
             }
@@ -44,7 +44,7 @@ public class FromHandlersFileReadModelsReflector implements ReadModelReflector {
         resourceReader.readLinesFromFile(
             concatenatePath(handlersDirectory, readModelClass),
             line -> {
-                String[] messageClassAndAndMethod = line.split(",", 2);
+                String[] messageClassAndAndMethod = line.split(",", 3);
                 final String messageClass = messageClassAndAndMethod[0];
                 final String methodName = messageClassAndAndMethod[1];
                 if(eventClass.equals(messageClass)){

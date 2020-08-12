@@ -67,6 +67,7 @@ public class CommandValidatorProcessor extends AbstractProcessor {
             ArrayList<Error> errors = new ArrayList<>();
 
             final String methodName = element.getSimpleName().toString();
+            final int order = element.getAnnotation(com.cqrs.annotations.CommandValidator.class).order();
             if (element.getKind() != ElementKind.METHOD) {
                 messager.printMessage(
                     Diagnostic.Kind.ERROR,
@@ -172,7 +173,7 @@ public class CommandValidatorProcessor extends AbstractProcessor {
             } else {
                 List<CommandValidator> existing =
                     handlers.getOrDefault(listenerClassName, new LinkedList<>());
-                existing.add(new CommandValidator(commandClassName, methodName));
+                existing.add(new CommandValidator(commandClassName, methodName, order));
                 handlers.put(listenerClassName, existing);
             }
         }
@@ -198,7 +199,8 @@ public class CommandValidatorProcessor extends AbstractProcessor {
                 try {
                     writer.write(
                         eventHandlers.stream()
-                            .map(eventHandler -> eventHandler.commandClassName + "," + eventHandler.methodName)
+                            .map(eventHandler -> eventHandler.commandClassName + "," + eventHandler.methodName + "," + eventHandler.order)
+                            .sorted()
                             .collect(Collectors.joining("\n"))
                     );
                 } catch (IOException e) {
@@ -235,10 +237,12 @@ public class CommandValidatorProcessor extends AbstractProcessor {
 
         public final String commandClassName;
         public final String methodName;
+        public final int order;
 
-        public CommandValidator(String commandClassName, String methodName) {
+        public CommandValidator(String commandClassName, String methodName, int order) {
             this.commandClassName = commandClassName;
             this.methodName = methodName;
+            this.order = order;
         }
     }
 }

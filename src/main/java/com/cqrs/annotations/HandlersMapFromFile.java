@@ -2,6 +2,7 @@ package com.cqrs.annotations;
 
 import com.cqrs.util.ResourceReader;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,15 +32,20 @@ abstract public class HandlersMapFromFile implements HandlersMap {
         resourceReader.forEachLineInDirectory(
             DIRECTORY_PATH,
             (listenerName, line) -> {
-                String[] messageClassAndAndMethod = line.split(",", 2);
+                String[] messageClassAndAndMethod = line.split(",", 3);
                 final String messageClass = messageClassAndAndMethod[0];
                 final String methodName = messageClassAndAndMethod[1];
+                final int order = (messageClassAndAndMethod.length > 2) ? Integer.parseUnsignedInt(messageClassAndAndMethod[2]) : 0;
+
                 List<MessageHandler> existing = handlersPerMessage.getOrDefault(messageClass, new LinkedList<>());
-                existing.add(new MessageHandler(listenerName, methodName));
+                existing.add(new MessageHandler(listenerName, methodName, order));
                 handlersPerMessage.put(messageClass, existing);
             }
         );
+        for(String messageClass:handlersPerMessage.keySet()){
+            List<MessageHandler> handlers = handlersPerMessage.get(messageClass);
+            handlers.sort(Comparator.comparingInt(o -> o.order));
+        }
         return handlersPerMessage;
     }
-
 }
