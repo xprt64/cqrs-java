@@ -84,9 +84,9 @@ public class QuestionAnswerersProcessor extends AbstractProcessor {
     protected void error(Error error) {
         if (error.annotationMirror != null) {
             processingEnv.getMessager()
-                    .printMessage(Diagnostic.Kind.ERROR, error.error, error.element, error.annotationMirror);
+                    .printMessage(Diagnostic.Kind.ERROR, "Annotation processor error: " + error.error, error.element, error.annotationMirror);
         } else {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, error.error, error.element);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Annotation processor error: " + error.error, error.element);
         }
     }
 
@@ -139,10 +139,9 @@ public class QuestionAnswerersProcessor extends AbstractProcessor {
                         processingEnv.getElementUtils().getTypeElement(firstParam.toString());
                 queryClassName = firstParam.toString();
 
-                if (firstParam.getKind().isPrimitive() ||
-                        !typeExtendsSuperClass(firstParamElement, Object.class.getCanonicalName())) {
+                if (firstParam.getKind().isPrimitive()) {
                     errors.add(new Error(
-                            "First parameter of a query handler must extend " + Object.class.getCanonicalName(),
+                            "First parameter of a query handler must be a class",
                             firstParamElement
                     ));
                 }

@@ -144,10 +144,9 @@ public class QuestionSubscribersProcessor extends AbstractProcessor {
                     processingEnv.getElementUtils().getTypeElement(firstParam.toString());
                 queryClassName = firstParamElement.getQualifiedName().toString();
 
-                if (firstParam.getKind().isPrimitive() ||
-                    !typeExtendsSuperClass(firstParamElement, Object.class.getCanonicalName())) {
+                if (firstParam.getKind().isPrimitive()) {
                     errors.add(new Error(
-                        "First parameter of a query handler must extend " + Object.class.getCanonicalName(),
+                        "First parameter of a query handler must be a class",
                         firstParamElement
                     ));
                 }

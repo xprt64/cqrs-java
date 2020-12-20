@@ -16,18 +16,23 @@ public class EventSourcedAggregateRepository implements AggregateRepository {
 
     final public EventStore eventStore;
     final private HashMap<String, Integer> loadedAggregateVersions = new HashMap<>();
+    final private ClassLoader classLoader;
 
-    public EventSourcedAggregateRepository(
-        EventStore eventStore
-    ) {
+    public EventSourcedAggregateRepository(EventStore eventStore) {
         this.eventStore = eventStore;
+        classLoader = Thread.currentThread().getContextClassLoader();
     }
 
-    private static Aggregate factoryAggregate(AggregateDescriptor aggregateDescriptor)
+    public EventSourcedAggregateRepository(EventStore eventStore, ClassLoader classLoader) {
+        this.eventStore = eventStore;
+        this.classLoader = classLoader;
+    }
+
+    private Aggregate factoryAggregate(AggregateDescriptor aggregateDescriptor)
         throws AggregateTypeException {
         String aggregateClass = aggregateDescriptor.aggregateClass;
         try {
-            Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(aggregateClass);
+            Class<?> clazz = classLoader.loadClass(aggregateClass);
             Constructor<?> ctor = clazz.getDeclaredConstructor();
             ctor.setAccessible(true);
             return (Aggregate) ctor.newInstance();
