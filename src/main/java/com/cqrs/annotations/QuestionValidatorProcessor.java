@@ -1,7 +1,6 @@
 package com.cqrs.annotations;
 
-import com.cqrs.base.Command;
-import com.cqrs.commands.CommandMetaData;
+import com.cqrs.base.Question;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -17,11 +16,11 @@ import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SupportedAnnotationTypes("com.cqrs.annotations.CommandValidator")
+@SupportedAnnotationTypes("com.cqrs.annotations.QuestionValidator")
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-public class CommandValidatorProcessor extends AbstractProcessor {
+public class QuestionValidatorProcessor extends AbstractProcessor {
 
-    public static final String COMMAND_VALIDATORS_DIRECTORY = "com_cqrs_annotations_commandValidators";
+    public static final String QUESTION_VALIDATORS_DIRECTORY = "com_cqrs_annotations_questionValidators";
 
     private static AnnotationMirror getAnnotationMirror(Element element, TypeElement annotation) {
         for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
@@ -38,7 +37,7 @@ public class CommandValidatorProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         annotations.forEach(annotation -> {
             try {
-                writeCode(getCommandValidators(roundEnv.getElementsAnnotatedWith(annotation), annotation));
+                writeCode(getQuestionValidators(roundEnv.getElementsAnnotatedWith(annotation), annotation));
             } catch (Exception e) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "" + e.getMessage());
             }
@@ -46,17 +45,17 @@ public class CommandValidatorProcessor extends AbstractProcessor {
         return false;
     }
 
-    private HashMap<String, List<CommandValidator>> getCommandValidators(
+    private HashMap<String, List<QuestionValidator>> getQuestionValidators(
         Set<? extends Element> annotatedElements,
         TypeElement annotation
     ) throws Exception {
-        HashMap<String, List<CommandValidator>> handlers = new HashMap<>();
+        HashMap<String, List<QuestionValidator>> handlers = new HashMap<>();
         final Messager messager = processingEnv.getMessager();
         /*
-         * @CommandValidator
+         * @QuestionValidator
          * - to non-static methods
          * - returns Throwable or List<Throwable> or throws something
-         * - arguments: Command and optional CommandMeta
+         * - arguments: Question
          */
         for (Element element : annotatedElements) {
             ExecutableType type = (ExecutableType) element.asType();
@@ -67,11 +66,11 @@ public class CommandValidatorProcessor extends AbstractProcessor {
             ArrayList<Error> errors = new ArrayList<>();
 
             final String methodName = element.getSimpleName().toString();
-            final int order = element.getAnnotation(com.cqrs.annotations.CommandValidator.class).order();
+            final int order = element.getAnnotation(com.cqrs.annotations.QuestionValidator.class).order();
             if (element.getKind() != ElementKind.METHOD) {
                 messager.printMessage(
                     Diagnostic.Kind.ERROR,
-                    "annotated element is not a method (only methods can be annotated with @CommandValidator)",
+                    "annotated element is not a method (only methods can be annotated with @QuestionValidator)",
                     element,
                     getAnnotationMirror(element, annotation)
                 );
@@ -125,7 +124,7 @@ public class CommandValidatorProcessor extends AbstractProcessor {
 
             if (element.getModifiers().contains(Modifier.STATIC)) {
                 errors.add(new Error(
-                    "method is static (only non-static methods can be annotated with @CommandValidator)",
+                    "method is static (only non-static methods can be annotated with @QuestionValidator)",
                     element,
                     getAnnotationMirror(element, annotation)
                 ));
@@ -133,7 +132,7 @@ public class CommandValidatorProcessor extends AbstractProcessor {
 
             if (type.getParameterTypes().size() < 1) {
                 errors.add(new Error(
-                    "Command handler must have at least the Command parameter as the first parameter",
+                    "Question handler must have at least the Question parameter as the first parameter",
                     element,
                     getAnnotationMirror(element, annotation)
                 ));
@@ -145,25 +144,18 @@ public class CommandValidatorProcessor extends AbstractProcessor {
                 commandClassName = firstParamElement.getQualifiedName().toString();
 
                 if (firstParam.getKind().isPrimitive() ||
-                    !typeIsInstanceOfInterface(firstParamElement, Command.class.getCanonicalName())) {
+                    !typeIsInstanceOfInterface(firstParamElement, Question.class.getCanonicalName())) {
                     errors.add(new Error(
-                        "First parameter must be instance of " + Command.class.getCanonicalName(),
+                        "First parameter must be instance of " + Question.class.getCanonicalName(),
                         firstParamElement
                     ));
                 } else {
                     if (type.getParameterTypes().size() > 1) {
-                        TypeMirror secondParam = type.getParameterTypes().get(0);
-                        TypeElement secondParamElement = processingEnv.getElementUtils()
-                            .getTypeElement(type.getParameterTypes().get(1).toString());
-                        if (secondParam.getKind().isPrimitive() ||
-                            !secondParamElement.getQualifiedName().toString()
-                                .equals(CommandMetaData.class.getCanonicalName())) {
-                            errors.add(new Error(
-                                "Second optional parameter must be instance of " +
-                                CommandMetaData.class.getCanonicalName(),
-                                secondParamElement
-                            ));
-                        }
+                        errors.add(new Error(
+                            "Only one parameter is permitted",
+                            element,
+                            getAnnotationMirror(element, annotation)
+                        ));
                     }
                 }
             }
@@ -171,9 +163,9 @@ public class CommandValidatorProcessor extends AbstractProcessor {
                 errors.forEach(this::error);
                 throw new Exception();
             } else {
-                List<CommandValidator> existing =
+                List<QuestionValidator> existing =
                     handlers.getOrDefault(listenerClassName, new LinkedList<>());
-                existing.add(new CommandValidator(commandClassName, methodName, order));
+                existing.add(new QuestionValidator(commandClassName, methodName, order));
                 handlers.put(listenerClassName, existing);
             }
         }
@@ -181,18 +173,18 @@ public class CommandValidatorProcessor extends AbstractProcessor {
     }
 
 
-    protected void writeCode(HashMap<String, List<CommandValidator>> byListener) throws IOException {
+    protected void writeCode(HashMap<String, List<QuestionValidator>> byListener) {
 
         byListener.forEach((listenerClass, eventHandlers) -> {
             try {
-                System.out.println("Command validators in " + listenerClass);
+                System.out.println("Question validators in " + listenerClass);
                 System.out.println(
-                    "Write to " + StandardLocation.SOURCE_OUTPUT + "/" + COMMAND_VALIDATORS_DIRECTORY + "/" +
+                    "Write to " + StandardLocation.SOURCE_OUTPUT + "/" + QUESTION_VALIDATORS_DIRECTORY + "/" +
                     listenerClass);
                 final Writer writer = processingEnv.getFiler()
                     .createResource(
                         StandardLocation.SOURCE_OUTPUT,
-                        COMMAND_VALIDATORS_DIRECTORY,
+                        QUESTION_VALIDATORS_DIRECTORY,
                         listenerClass
                     )
                     .openWriter();
@@ -217,25 +209,26 @@ public class CommandValidatorProcessor extends AbstractProcessor {
     }
 
     private boolean typeIsInstanceOfInterface(TypeElement type, String base) {
-        return this.processingEnv.getTypeUtils().isAssignable(type.asType(), this.processingEnv.getElementUtils().getTypeElement(base).asType());
-   }
+        TypeMirror baseTypeMirror = this.processingEnv.getElementUtils().getTypeElement(base).asType();
+        return this.processingEnv.getTypeUtils().isAssignable(type.asType(), baseTypeMirror);
+    }
 
     private void error(Error error) {
         if (error.annotationMirror != null) {
             processingEnv.getMessager()
-                .printMessage(Diagnostic.Kind.ERROR, error.error, error.element, error.annotationMirror);
+                .printMessage(Diagnostic.Kind.ERROR, getClass().getSimpleName() + " error:" + error.error, error.element, error.annotationMirror);
         } else {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, error.error, error.element);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, getClass().getSimpleName() + " error:" + error.error, error.element);
         }
     }
 
-    static class CommandValidator {
+    static class QuestionValidator {
 
         public final String commandClassName;
         public final String methodName;
         public final int order;
 
-        public CommandValidator(String commandClassName, String methodName, int order) {
+        public QuestionValidator(String commandClassName, String methodName, int order) {
             this.commandClassName = commandClassName;
             this.methodName = methodName;
             this.order = order;

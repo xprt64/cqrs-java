@@ -1,5 +1,6 @@
 package com.cqrs.questions;
 
+import com.cqrs.base.Question;
 import com.cqrs.infrastructure.AbstractFactory;
 import com.cqrs.annotations.MessageHandler;
 import com.cqrs.questions.exceptions.HandlerException;
@@ -36,7 +37,7 @@ public class DefaultAsker implements Asker {
     }
 
     @Override
-    public <Q> Q askAndReturn(Q question) throws HandlerException {
+    public <Q extends Question> Q askAndReturn(Q question) throws HandlerException {
         MessageHandler answererDescriptor = answererResolver.findAnswerer(question);
         if (null == answererDescriptor) {
             throw new HandlerException("No answerer for " + question.getClass().getCanonicalName());
@@ -63,7 +64,7 @@ public class DefaultAsker implements Asker {
     }
 
     @Override
-    public <Q> void askAndNotifyAsker(Q question, Object asker) throws HandlerException {
+    public <Q extends Question> void askAndNotifyAsker(Q question, Object asker) throws HandlerException {
         Q answeredQuestion = askAndReturn(question);
         MessageHandler subscriberDescriptor = findSubscriberMethod(question, asker);
         try {

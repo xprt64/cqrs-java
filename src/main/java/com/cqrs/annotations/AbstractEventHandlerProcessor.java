@@ -75,11 +75,7 @@ abstract public class AbstractEventHandlerProcessor extends AbstractProcessor {
     }
 
     protected boolean typeIsInstanceOfInterface(TypeElement type, String base) {
-        return type.getInterfaces()
-            .stream()
-            .map(TypeMirror::toString)
-            .collect(Collectors.toList())
-            .contains(base);
+        return this.processingEnv.getTypeUtils().isAssignable(type.asType(), this.processingEnv.getElementUtils().getTypeElement(base).asType());
     }
 
     protected void error(Error error) {

@@ -1,6 +1,7 @@
 package com.cqrs.questions.DefaultAskerTests;
 
 import com.cqrs.annotations.MessageHandler;
+import com.cqrs.base.Question;
 import com.cqrs.infrastructure.AbstractFactory;
 import com.cqrs.questions.DefaultAsker;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ class DefaultAskerTest {
     }
 }
 
-class MyQuestion {
+class MyQuestion implements Question {
     final public String question;
     public String answer;
 

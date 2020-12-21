@@ -179,19 +179,15 @@ public class CommandHandlersProcessor extends AbstractProcessor {
     }
 
     private boolean typeIsInstanceOfInterface(TypeElement type, String base) {
-        return type.getInterfaces()
-            .stream()
-            .map(TypeMirror::toString)
-            .collect(Collectors.toList())
-            .contains(base);
+        return this.processingEnv.getTypeUtils().isAssignable(type.asType(), this.processingEnv.getElementUtils().getTypeElement(base).asType());
     }
 
     private void error(Error error) {
         if (error.annotationMirror != null) {
             processingEnv.getMessager()
-                .printMessage(Diagnostic.Kind.ERROR, error.error, error.element, error.annotationMirror);
+                .printMessage(Diagnostic.Kind.ERROR,getClass().getSimpleName() + " error: " +  error.error, error.element, error.annotationMirror);
         } else {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, error.error, error.element);
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, getClass().getSimpleName() + " error: " +  error.error, error.element);
         }
     }
 
